@@ -1,5 +1,8 @@
 *.py[cod]
 
+# Hidden files
+.*
+
 # C extensions
 *.so
 
