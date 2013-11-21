@@ -1,23 +1,25 @@
 import numpy as np
 
 
-def preprocess(x):
+def preprocess(X):
     """
     Takes a matrix with a categorical variables and encodes them
     using ¿binarization? Say, for three categories:
-    0 -> 1 0 0
-    1 -> 0 1 0
-    2 -> 0 0 1
+
+    * 0 → 1 0 0
+    * 1 → 0 1 0
+    * 2 → 0 0 1
+
     Whatever that's called. So that it can be used with RBF kernel.
     """
-    n, d = x.shape
+    n, d = X.shape
     y = [[] for _ in range(n)]
     # For each attribute:
     for i in range(d):
         # Get the set of values from the examples:
         values = set()
         for j in range(n):
-            values.add(x[j][i])
+            values.add(X[j][i])
         # Assign an index to each value:
         index = dict()
         for j, v in enumerate(values):
@@ -25,7 +27,7 @@ def preprocess(x):
         # Assing len(values) attributes to the example where
         # all but the value of the current one are 0
         for j in range(n):
-            v = x[j][i]
+            v = X[j][i]
             new = [0] * len(values)
             new[index[v]] = 1
             y[j] += new

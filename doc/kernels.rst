@@ -1,7 +1,20 @@
-kernels module
-==============
+kernels package
+===============
+
+Submodules
+----------
+
+kernels.categorical module
+--------------------------
+
+.. automodule:: kernels.categorical
+    :members:
+    :show-inheritance:
+
+
+Module contents
+---------------
 
 .. automodule:: kernels
     :members:
-    :undoc-members:
     :show-inheritance:

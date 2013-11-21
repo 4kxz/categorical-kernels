@@ -6,12 +6,12 @@ import numpy as np
 
 def synthetic(n, d=20, c=2, p=0.5):
     """
-    `n`: number of examples to generate.
-    `d`: number of attributes for each example.
-    `c`: number of classes.
-    `p`: change probability of class-unique attributes:
-        `p` close to 0: class attributes almost never happen (random/harder).
-        `p` close to 1: class attributes happen as often as the rest (easier).
+    * `n`: number of examples to generate.
+    * `d`: number of attributes for each example.
+    * `c`: number of classes.
+    * `p`: change probability of class-unique attributes:
+        * `p` close to 0: class attributes almost never happen (random/harder).
+        * `p` close to 1: class attributes happen as often as the rest (easier).
     """
     p **= 2  # Makes the effect of the parameter more linear.
     a = c + 2  # Number of attribute values.
@@ -36,7 +36,7 @@ def synthetic(n, d=20, c=2, p=0.5):
 def gmonks(n, d):
     """
     Returns a matrix with `n` examples of the monks dataset as rows, which have
-    `d`*6 features each. Also returns a vector of `n` booleans with the class
+    `d` * 6 features each. Also returns a vector of `n` booleans with the class
     of each example.
     """
     # Give names to the categories, makes the code easier to read:
