@@ -182,11 +182,11 @@ def k1(X, Y, prev, comp, post, alpha=1, pmf=None):
     # Inverting function h_a:
     h = lambda x: (1 - x ** alpha) ** (1 / alpha)
     # Compute the kernel matrix:
-    M = np.zeros((len(X), len(Y)))
+    G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            M[i][j] = post(k1_mult, u, v, prev, comp, h, pgen)
-    return M
+            G[i][j] = post(k1_mult, u, v, prev, comp, h, pgen)
+    return G
 
 def fast_k1(X, prev='ident', comp='mean', post='ident', params=None, pmf=None):
     """
@@ -277,12 +277,12 @@ def fast_k2(X, pmf=None):
             v = X[i][j]
             P[i][j] = pmf[j][v]
     # The gram matrix is computed using vectorised operations because speed:
-    M = np.zeros((n, n))
+    G = np.zeros((n, n))
     for i in range(n):
         Xi = np.repeat([X[i]], n - i, axis=0)
         Pi = np.repeat([P[i]], n - i, axis=0)
         Pi = (1 / Pi) / n
-        Mi = (X[i:n] == Xi) * Pi
-        Mi = Mi.sum(axis=1) / d
-        M[i, i:n] = M[i:n, i] = Mi
-    return M
+        Gi = (X[i:n] == Xi) * Pi
+        Gi = Gi.sum(axis=1) / d
+        G[i, i:n] = G[i:n, i] = Gi
+    return G
