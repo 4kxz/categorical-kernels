@@ -151,14 +151,14 @@ def k1_univ(x, y, h, p):
 def k1_mult(u, v, prev, comp, h, pgen):
     """
     Multivariate kernel between two vectors `u` and `v` that applies the kernel
-    k0 for each attribute and a composition function to return a single value.
+    k1 for each attribute and a composition function to return a single value.
 
     * `prev` is a function to transform the data before applying `comp`.
     * `comp` is a function that takes a vector and returns a single value.
     * `h` is the inverting function.
     * `pgen` is a probability function generator (*see pmf_to_pgen*).
     """
-    # Compute the kernel applying the previous transformation and composition functions:
+    # Compute the kernel applying the previous and composition functions:
     return comp([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
 
 def k1(X, Y, prev, comp, post, alpha=1, pmf=None):
@@ -261,6 +261,41 @@ def fast_k1(X, prev='ident', comp='mean', post='ident', params=None, pmf=None):
 # Categorical Kernel K2
 #------------------------------------------------------------------------------
 
+def k2_univ(x, y, p, n):
+    """Univariate kernel k2 between two single variables."""
+    return 0 if x != y else 1 / p(x) / n
+
+def k2_mult(u, v, pgen, n):
+    """
+    Multivariate kernel between two vectors `u` and `v` that applies the kernel
+    k2 for each attribute and a composition function to return a single value.
+
+    * `pgen` is a probability function generator (*see pmf_to_pgen*).
+    """
+    # Compute the kernel applying the previous and composition functions:
+    return np.mean([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
+
+def k2(X, Y, pmf=None):
+    """
+    `X` and `Y` are both matrices where each row is an example and each column
+    a categorical attribute.
+
+    Returns the gram matrix obtained applying ``k2_mult(x, y, prev, comp)``
+    between each pair of elements in `X` and `Y`.
+
+    * `pmf` is the probability mass function (*by default pmf_from_matrix*).
+    """
+    # When pmf is unknown compute it from Y:
+    if pmf is None:
+        pmf = pmf_from_matrix(Y)
+    pgen = pmf_to_pgen(pmf)
+    # Compute the kernel matrix:
+    G = np.zeros((len(X), len(Y)))
+    for i, u in enumerate(X):
+        for j, v in enumerate(Y):
+            G[i][j] = k2_mult(u, v, pgen, len(Y))
+    return G
+
 def fast_k2(X, pmf=None):
     """
     This is an optimised version of `k2`, to be used when *X = Y*.
@@ -281,7 +316,7 @@ def fast_k2(X, pmf=None):
     for i in range(n):
         Xi = np.repeat([X[i]], n - i, axis=0)
         Pi = np.repeat([P[i]], n - i, axis=0)
-        Pi = (1 / Pi) / n
+        Pi = 1 / Pi / n
         Gi = (X[i:n] == Xi) * Pi
         Gi = Gi.sum(axis=1) / d
         G[i, i:n] = G[i:n, i] = Gi
