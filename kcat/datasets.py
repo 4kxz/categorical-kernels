@@ -13,7 +13,7 @@ def synthetic(n, d=20, c=2, p=0.5):
         * `p` close to 0: class attributes almost never happen (random/harder).
         * `p` close to 1: class attributes happen as often as the rest (easier).
     """
-    p **= 2  # Makes the effect of the parameter more linear.
+    p **= 2.0  # Makes the effect of the parameter more linear.
     a = c + 2  # Number of attribute values.
     # Assign class to each example:
     y = [i % c for i in range(n)]
@@ -40,14 +40,14 @@ def gmonks(n, d):
     of each example.
     """
     # Give names to the categories, makes the code easier to read:
-    C1, C2, C3, C4, C5, C6 = range(6)
+    C1, C2, C3, C4 = range(4)
     categories = (
         (C1, C2, C3),
         (C1, C2, C3),
         (C1, C2),
         (C1, C2, C3),
         (C1, C2, C3, C4),
-        (C1, C2, C3, C4, C5, C6),
+        (C1, C2),
     )
     x, y = [], []
     for i in range(n):
