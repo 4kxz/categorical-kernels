@@ -7,7 +7,55 @@ import numpy as np
 # Misc. Functions
 #------------------------------------------------------------------------------
 
-def get_function(name, params=None):
+def get_pgen(X):
+    """
+    Obtains a probability mass function generator from `X`.
+
+    :param X: Matrix where each row is an example and each column a categorical
+        attribute.
+
+    :returns: Probability mass function generator :math:`pgen_X`, such that
+        ``pgen_x(i)`` returns the function :math:`p_i`. In turn, ``p_i(x)``
+        returns the probability of category *x* in the *i*-th attribute.
+    """
+    m, n = X.shape
+    # defaultdict initialises entries to 0.
+    pmf = [collections.defaultdict(int) for _ in range(n)]
+    for i in range(m):
+        for j in range(n):
+            c = X[i][j]
+            pmf[j][c] += 1.0 / m
+    # `pmf` is a list of dict (array<map<symbol, real>>), using it in the
+    # kernels would require to pass the indices all the way down to the
+    # univarate kernel. Using a couple of lambdas it can be turned into a
+    # function generator such that pgen(j) returns the function p(c) for the
+    # j-th attribute in pmf, which avoids some clutter in the code.
+    return lambda j: lambda c: pmf[j][c]
+
+def apply_pgen(pgen, X):
+    # TODO
+    """
+    Applies `pgen` to each element in `X`.
+
+    :param X: Matrix where each row is an example and each column a categorical
+        attribute.
+
+    :returns: Matrix *Y* of size :math:`m \\times n`, where
+        :math:`Y_{i, j} = P_j(X_{i, j})`.
+    """
+    m, n = X.shape
+    P = np.zeros(X.shape)
+    for i in range(m):
+        for j in range(n):
+            P[i][j] = pgen(j)(X[i][j])
+    return P
+
+# Some of the categorical kernels can receive Python functions as parameters.
+# For ease of use, some predefined functions can be specified with a string.
+# `get_function` and `get_vector_function` take this string and return the
+# appropiate function. Both are used when handling the kernel parameters.
+
+def get_function(name, params={}):
     if callable(name):
         return name
     elif name == 'mean':
@@ -15,19 +63,23 @@ def get_function(name, params=None):
     elif name == 'prod':
         return lambda x: np.prod(x)
     elif name == 'ident':
-        return lambda k, *a: k(*a)
+        return lambda k, *args, **kwargs: k(*args, **kwargs)
     elif name == 'f1':
-        return lambda k, x, y, *a: np.exp(
-            params['gamma'] * k(x, y, *a)
-        )
+        def f1(k, x, y, *args, **kwargs):
+            kxy = k(x, y, *args, **kwargs)
+            return np.exp(params['gamma'] * kxy)
+        return f1
     elif name == 'f2':
-        return lambda k, x, y, *a: np.exp(
-            params['gamma'] * (2.0 * k(x, y, *a) - k(x, x, *a) - k(y, y, *a))
-        )
+        def f2(k, x, y, *args, **kwargs):
+            kxy = k(x, y, *args, **kwargs)
+            kxx = k(x, x, *args, **kwargs)
+            kyy = k(y, y, *args, **kwargs)
+            return np.exp(params['gamma'] * (2.0 * kxy - kxx - kyy))
+        return f2
     else:
-        raise ValueError("Invalid function")
+        raise ValueError("Invalid function {}".format(name))
 
-def get_vectorised_function(name, params=None):
+def get_vector_function(name, params={}):
     if callable(name):
         return name
     elif name == 'mean':
@@ -38,34 +90,10 @@ def get_vectorised_function(name, params=None):
         return lambda x: x
     elif name == 'f1':
         return lambda x: np.exp(params['gamma'] * x)
+    elif name == 'f2':
+        raise ValueError("Function f2 can't be vectorised")
     else:
-        raise ValueError("Invalid function")
-
-def pmf_from_matrix(X):
-    """
-    `X` is a matrix where each row is an example and each column a categorical
-    attribute.
-
-    Returns an array of arrays where ``pmf[j][c]`` is the probability of
-    occurence of category ``c = X[i][j]`` within the ``j``-th attribute.`The
-    returned structure is a `list` of `dict`.
-    """
-    n, d = X.shape
-    pmf = []
-    for j in range(d):
-        pmf.append(collections.defaultdict(int))  # Initialises entries to 0.
-        for i in range(n):
-            c = X[i][j]
-            pmf[j][c] += 1.0 / n
-    return pmf
-
-# pmf is an array<map<symbol, real>> but to use it would require to pass the
-# indices all the way down to the kernel.
-# Using a couple of lambdas it can be turned into a function generator such
-# that pg(i) returns the function p(c) for the i-th attribute in pmf.
-
-def pmf_to_pg(pmf):
-    return lambda i: lambda c: pmf[i][c]
+        raise ValueError("Invalid function {}".format(name))
 
 
 #------------------------------------------------------------------------------
@@ -73,35 +101,45 @@ def pmf_to_pg(pmf):
 #------------------------------------------------------------------------------
 
 def k0_univ(x, y):
-    """Univariate kernel k0 between two single variables."""
+    """Univariate kernel k0."""
     return 0.0 if x != y else 1.0
 
-def k0_mult(u, v, prevf, compf):
+def k0_mult(u, v, prev, comp):
     """
-    Multivariate kernel between two vectors `u` and `v` that applies the kernel
-    k0 for each attribute and a composition function to return a single value.
+    Multivariate kernel k0.
 
-    * `prevf` is a function to transform the data before applying `comp`.
-    * `compf` is a function that takes a vector and returns a single value.
+    :param u: Data vector.
+    :param v: Data vector.
+    :param prev: Function to transform the data before applying `comp`.
+    :param comp: Function that takes a vector and returns a single value.
+
+    :returns: Value of applying the kernel ``k0_univ`` between each pair of
+        attributes in `u` and `v`, and then the composition function.
     """
     # List comprehension takes care of applying k0 and prev for each element:
-    return compf([prevf(k0_univ, u[i], v[i]) for i in range(len(u))])
+    return comp([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
 
-def k0(X, Y, prev='ident', comp='mean', post='ident', params=None):
+def k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
     """
-    `X` and `Y` are both matrices where each row is an example and each column
-    a categorical attribute.
+    Computes the gram matrix.
 
-    Returns the gram matrix obtained applying ``k0_mult(x, y, prev, comp)``
-    between each pair of elements in `X` and `Y`.
+    :param X: Data matrix where each row is an example and each column a
+        categorical attribute.
+    :param Y: Data matrix.
+    :param prev: Function to transform the data before applying `comp`. Accepts
+        ``'ident'`` and ``'f1'`` or a Python function.
+    :param comp: Function that takes a vector and returns a single value.
+        Accepts ``'mean'`` and ``'prod'`` or a Python function.
+    :param post: Function to transform the data after applying `comp`. Accepts
+        ``'ident'``, ``'f1'`` and  ``'f2'`` or a Python function.
+    :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
 
-    * `prev` is a function to transform the data before applying `comp`.
-    * `comp` is a function that takes a vector and returns a single value.
-    * `post` is a function to transform the data after applying `comp`.
+    :returns: Gram matrix obtained applying ``k0_mult`` between each pair of
+        elements in `X` and `Y`.
     """
-    prevf = get_function(prev, params)
-    compf = get_function(comp, params)
-    postf =  get_function(post, params)
+    prevf = get_function(prev, kwargs)
+    compf = get_function(comp, kwargs)
+    postf =  get_function(post, kwargs)
     # The gram matrix is computed by iterating each vector in X and Y:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
@@ -109,200 +147,197 @@ def k0(X, Y, prev='ident', comp='mean', post='ident', params=None):
             G[i][j] = postf(k0_mult, u, v, prevf, compf)
     return G
 
-def fast_k0(X, prev='ident', comp='mean', post='ident', params=None):
+def fast_k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
     """
-    This is an optimised version of `k0`, to be used when *X = Y*.
+    An optimised version of *k0* with the same interface.
 
-    It only works with a defined set of functions:
-
-    * `prev` accepts ``'ident'`` and ``'f1'``.
-    * `comp` accepts ``'mean'`` and ``'prod'``.
-    * `post` accepts ``'ident'``, ``'f1'`` and  ``'f2'``.
-    * `params` is a dictionary with any parameter used by the functions.
+    Since the code is vectorised any Python functions passed as argument must
+    work with numpy arrays.
     """
     # Since the multivariate kernel is the overlap, k(u, u) is always 1
     # and it can be simplified, independently of whether the composition is
     # the mean or the product:
     if post == 'f2':
-        post = lambda x: np.exp(params['gamma'] * (2.0 * x - 2.0))
-    prevf = get_vectorised_function(prev, params)
-    compf = get_vectorised_function(comp, params)
-    postf =  get_vectorised_function(post, params)
-    n, d = X.shape
-    G = np.zeros((n, n))
+        gamma = kwargs['gamma']
+        post = lambda x: np.exp(gamma * (2.0 * x - 2.0))
+    prevf = get_vector_function(prev, kwargs)
+    compf = get_vector_function(comp, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xn, xd = X.shape
+    yn, yd = Y.shape
     # The gram matrix is computed using vectorised operations because speed:
-    for i, xi in enumerate(X):
-        Xi = np.repeat([xi], n - i, axis=0)
-        Gi = X[i:n] == Xi
-        Gi = postf(compf(prevf(Gi)))
-        G[i, i:n] = G[i:n, i] = Gi
-    return G
-
+    XL = np.repeat(X, yn, axis=0)
+    YL = np.tile(Y, (xn, 1))
+    G = XL == YL
+    G = postf(compf(prevf(G)))
+    return G.reshape(xn, yn)
 
 #------------------------------------------------------------------------------
 # Categorical Kernel K1
 #------------------------------------------------------------------------------
 
 def k1_univ(x, y, h, p):
-    """Univariate kernel k1 between two single variables."""
+    """
+    Univariate kernel k1.
+
+    :param x: Value.
+    :param y: Value.
+    :param h: Inverting function.
+    :param p: Probability function.
+    """
     return 0.0 if x != y else h(p(x))
 
-def k1_mult(u, v, prevf, compf, h, pg):
+def k1_mult(u, v, h, pgen, prev, comp):
     """
-    Multivariate kernel between two vectors `u` and `v` that applies the kernel
-    k1 for each attribute and a composition function to return a single value.
+    Multivariate kernel k1.
 
-    * `prevf` is a function to transform the data before applying `comp`.
-    * `compf` is a function that takes a vector and returns a single value.
-    * `h` is the inverting function.
-    * `pg` is a probability function generator (*see pmf_to_pg*).
+    :param u: Data vector.
+    :param v: Data vector.
+    :param h: Inverting function.
+    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param prev: Function to transform the data before applying `comp`.
+    :param comp: Function that takes a vector and returns a single value.
+
+    :returns: Value of applying the kernel ``k1_univ`` between each pair of
+        attributes in `u` and `v`, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
-    return compf([prevf(k1_univ, u[i], v[i], h, pg(i)) for i in range(len(u))])
+    return comp([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
 
-def k1(X, Y, prev='ident', comp='mean', post='ident', params=None, pmf=None):
+def k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
+        **kwargs):
     """
-    `X` and `Y` are both matrices where each row is an example and each column
-    a categorical attribute.
+    Computes the gram matrix.
 
-    Returns the gram matrix obtained applying ``k1_mult(x, y, prev, comp)``
-    between each pair of elements in `X` and `Y`.
+    :param X: Data matrix where each row is an example and each column a
+        categorical attribute.
+    :param Y: Data matrix.
+    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param alpha: Parameter for the inverting function *h*.
+    :param prev: Function to transform the data before applying `comp`. Accepts
+        ``'ident'`` and ``'f1'`` or a Python function.
+    :param comp: Function that takes a vector and returns a single value.
+        Accepts ``'mean'`` and ``'prod'`` or a Python function.
+    :param post: Function to transform the data after applying `comp`. Accepts
+        ``'ident'``, ``'f1'`` and  ``'f2'`` or a Python function.
+    :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
 
-    * `prev` is a function to transform the data before applying `comp`.
-    * `comp` is a function that takes a vector and returns a single value.
-    * `post` is a function to transform the data after applying `comp`.
-    * `alpha` is the parameter for the inverting function *h*.
-    * `pmf` is the probability mass function (*by default pmf_from_matrix*).
+    :returns: Gram matrix obtained applying ``k1_mult`` between each pair of
+        elements in `X` and `Y`.
     """
-    prevf = get_function(prev, params)
-    compf = get_function(comp, params)
-    postf =  get_function(post, params)
-    # When pmf is unknown compute it from X:
-    if pmf is None:
-        pmf = pmf_from_matrix(X)
-    pg = pmf_to_pg(pmf)
-    # Inverting function h_a:
-    alpha = 1.0 if params is None else params.get('alpha', 1.0)
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_function(prev, kwargs)
+    compf = get_function(comp, kwargs)
+    postf =  get_function(post, kwargs)
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = postf(k1_mult, u, v, prevf, compf, h, pg)
+            G[i][j] = postf(k1_mult, u, v, h, pgen, prevf, compf)
     return G
 
-def fast_k1(X, prev='ident', comp='mean', post='ident', params=None, pmf=None):
+def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
+        **kwargs):
     """
-    This is an optimised version of `k1`, to be used when *X = Y*.
+    An optimised version of *k1* with the same interface.
 
-    It only works with a defined set of functions:
-
-    * `prev` accepts ``'ident'`` and ``'f1'``.
-    * `comp` accepts ``'mean'`` and ``'prod'``.
-    * `post` accepts ``'ident'``, ``'f1'`` and  ``'f2'``.
-    * `params` is a dictionary with any parameter used by the functions.
-    * `pmf` is the probability mass function (*by default pmf_from_matrix*).
+    Since the code is vectorised any Python functions passed as argument must
+    work with numpy arrays.
     """
-    if pmf is None:
-        pmf = pmf_from_matrix(X)
-    # Inverting function h:
-    alpha = 1.0 if params is None else params.get('alpha', 1.0)
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    # The post f2 is applied later in a seperate loop.
-    if post == 'f2':
-        post = lambda x: x
-    prevf = get_vectorised_function(prev, params)
-    compf = get_vectorised_function(comp, params)
-    postf =  get_vectorised_function(post, params)
-    # Create a matrix with the weights, for convenience:
-    n, d = X.shape
-    P = np.zeros(X.shape)
-    for i in range(n):
-        for j in range(d):
-            v = X[i][j]
-            P[i][j] = h(pmf[j][v])  # Apply h(x) to all the categories in pmf.
+    Py = h(apply_pgen(pgen, Y))
+    prevf = get_vector_function(prev, kwargs)
+    compf = get_vector_function(comp, kwargs)
+    postf = get_vector_function(post, kwargs) if post != 'f2' else None
+    # The function f2 needs to be treated separately.
+    xn, xd = X.shape
+    yn, yd = Y.shape
     # The gram matrix is computed using vectorised operations because speed:
-    G = np.zeros((n, n))
-    for i in range(n):
-        Xi = np.repeat([X[i]], n - i, axis=0)
-        Pi = np.repeat([P[i]], n - i, axis=0)
-        Gi = (X[i:n] == Xi) * Pi
-        Gi = postf(compf(prevf(Gi)))
-        G[i, i:n] = G[i:n, i] = Gi
+    XL = np.repeat(X, yn, axis=0)
+    YL = np.tile(Y, (xn, 1))
+    PY = np.tile(Py, (xn, 1))
+    G = (XL == YL) * PY
+    G = compf(prevf(G))
     # When post == 'f2', postf does nothing.
     # The actual post function is applied here:
-    if post == 'f2':
+    if post != 'f2':
+        G = postf(G)
+    else:
         # We know that: f2 = e ^ (gamma * (2 * k(x, y) - k(x, x) - k(y, y))).
         # The current values of G are those of k(x, y).
-        # The values of k(z, z) are computed in the diagonal of G for any z.
-        # We can use that to avoid recomputing k(x, x) and k(y, y):
-        kxx = np.diag(G)
-        kyy = kxx[np.newaxis].T
-        G = np.exp(params['gamma'] * (2.0 * G - kxx - kyy))
-    return G
-
+        # We need to compute the values of k(x, x) and k(y, y) for each
+        # x in X and y in Y:
+        Px = h(apply_pgen(pgen, X))
+        GX = np.repeat(Px, yn, axis=0)
+        GY = np.tile(Py, (xn, 1))
+        GX = compf(prevf(GX))
+        GY = compf(prevf(GY))
+        # Apply f2:
+        gamma = kwargs['gamma']
+        G = np.exp(gamma * (2.0 * G - GX - GY))
+    return G.reshape(xn, yn)
 
 #------------------------------------------------------------------------------
 # Categorical Kernel K2
 #------------------------------------------------------------------------------
 
 def k2_univ(x, y, p, n):
-    """Univariate kernel k2 between two single variables."""
+    """
+    Univariate kernel k2.
+
+    :param x: Value.
+    :param y: Value.
+    :param p: Probability function.
+    :param n: Number of elements.
+    """
     return 0.0 if x != y else 1.0 / p(x) / n
 
-def k2_mult(u, v, pg, n):
+def k2_mult(u, v, pgen, n):
     """
-    Multivariate kernel between two vectors `u` and `v` that applies the kernel
-    k2 for each attribute and a composition function to return a single value.
+    Multivariate kernel k2.
 
-    * `pg` is a probability function generator (*see pmf_to_pg*).
+    :param u: Data vector.
+    :param v: Data vector.
+    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param n: Number of elements.
+
+    :returns: Value of applying the kernel ``k2_univ`` between each pair of
+        attributes in `u` and `v`, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
-    return np.mean([k2_univ(u[i], v[i], pg(i), n) for i in range(len(u))])
+    return np.mean([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
 
-def k2(X, Y, pmf=None):
+def k2(X, Y, pgen):
     """
-    `X` and `Y` are both matrices where each row is an example and each column
-    a categorical attribute.
+    Computes the gram matrix.
 
-    Returns the gram matrix obtained applying ``k2_mult(x, y, prev, comp)``
-    between each pair of elements in `X` and `Y`.
+    :param X: Data matrix where each row is an example and each column a
+        categorical attribute.
+    :param Y: Data matrix.
+    :param pgen: Probability mass function generator (*see get_pgen*).
 
-    * `pmf` is the probability mass function (*by default pmf_from_matrix*).
+    :returns: Gram matrix obtained applying ``k2_mult`` between each pair of
+        elements in `X` and `Y`.
     """
-    # When pmf is unknown compute it from Y:
-    if pmf is None:
-        pmf = pmf_from_matrix(Y)
-    pg = pmf_to_pg(pmf)
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = k2_mult(u, v, pg, len(Y))
+            G[i][j] = k2_mult(u, v, pgen, len(Y))
     return G
 
-def fast_k2(X, pmf=None):
+def fast_k2(X, Y, pgen):
     """
-    This is an optimised version of `k2`, to be used when *X = Y*.
-
-    * `pmf` is the probability mass function (*by default pmf_from_matrix*).
+    An optimised version of *k2* with the same interface.
     """
-    if pmf is None:
-        pmf = pmf_from_matrix(X)
+    xn, xd = X.shape
+    yn, yd = Y.shape
+    Yp = np.zeros(Y.shape)
     # Create a matrix with the weights, for convenience:
-    n, d = X.shape
-    P = np.zeros((n, d))
-    for i in range(n):
-        for j in range(d):
-            v = X[i][j]
-            P[i][j] = pmf[j][v]
+    Yp = 1.0 / apply_pgen(pgen, Y) / yn
     # The gram matrix is computed using vectorised operations because speed:
-    G = np.zeros((n, n))
-    for i in range(n):
-        Xi = np.repeat([X[i]], n - i, axis=0)
-        Pi = np.repeat([P[i]], n - i, axis=0)
-        Pi = 1.0 / Pi / n
-        Gi = (X[i:n] == Xi) * Pi
-        Gi = Gi.sum(axis=1) / d
-        G[i, i:n] = G[i:n, i] = Gi
-    return G
+    XL = np.repeat(X, yn, axis=0)
+    YL = np.tile(Y, (xn, 1))
+    YP = np.tile(Yp, (xn, 1))
+    G = (XL == YL) * YP
+    return G.mean(axis=1).reshape(xn, yn)
