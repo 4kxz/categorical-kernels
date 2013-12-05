@@ -7,8 +7,7 @@ from sklearn.svm import SVC
 from .kernels.categorical import fast_k0, fast_k1
 
 
-
-def preprocess(X):
+def binary_encoder(X):
     """
     Takes a matrix with a categorical variables and encodes them
     using ¿binarization? Say, for three categories:
@@ -90,11 +89,3 @@ class GridSearchK1:
                         params = grid.best_params_, p
                         best_result = Results(grid.best_score_, params)
         return best_result
-
-
-if __name__ == '__main__':
-    x = np.array([['a', 'A'], ['b', 'B'], ['c', 'A']])
-    print("Categorical")
-    print(x)
-    print("Binary")
-    print(preprocess(x))

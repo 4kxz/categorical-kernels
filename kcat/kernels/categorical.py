@@ -163,14 +163,14 @@ def fast_k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
     prevf = get_vector_function(prev, kwargs)
     compf = get_vector_function(comp, kwargs)
     postf = get_vector_function(post, kwargs)
-    xn, xd = X.shape
-    yn, yd = Y.shape
+    xm, xn = X.shape
+    ym, yn = Y.shape
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, yn, axis=0)
-    YL = np.tile(Y, (xn, 1))
+    XL = np.repeat(X, ym, axis=0)
+    YL = np.tile(Y, (xm, 1))
     G = XL == YL
     G = postf(compf(prevf(G)))
-    return G.reshape(xn, yn)
+    return G.reshape(xm, ym)
 
 #------------------------------------------------------------------------------
 # Categorical Kernel K1
@@ -250,12 +250,12 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
     compf = get_vector_function(comp, kwargs)
     postf = get_vector_function(post, kwargs) if post != 'f2' else None
     # The function f2 needs to be treated separately.
-    xn, xd = X.shape
-    yn, yd = Y.shape
+    xm, xn = X.shape
+    ym, yn = Y.shape
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, yn, axis=0)
-    YL = np.tile(Y, (xn, 1))
-    PY = np.tile(Py, (xn, 1))
+    XL = np.repeat(X, ym, axis=0)
+    YL = np.tile(Y, (xm, 1))
+    PY = np.tile(Py, (xm, 1))
     G = (XL == YL) * PY
     G = compf(prevf(G))
     # When post == 'f2', postf does nothing.
@@ -268,14 +268,14 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
         # We need to compute the values of k(x, x) and k(y, y) for each
         # x in X and y in Y:
         Px = h(apply_pgen(pgen, X))
-        GX = np.repeat(Px, yn, axis=0)
-        GY = np.tile(Py, (xn, 1))
+        GX = np.repeat(Px, ym, axis=0)
+        GY = np.tile(Py, (xm, 1))
         GX = compf(prevf(GX))
         GY = compf(prevf(GY))
         # Apply f2:
         gamma = kwargs['gamma']
         G = np.exp(gamma * (2.0 * G - GX - GY))
-    return G.reshape(xn, yn)
+    return G.reshape(xm, ym)
 
 #------------------------------------------------------------------------------
 # Categorical Kernel K2
@@ -330,14 +330,13 @@ def fast_k2(X, Y, pgen):
     """
     An optimised version of *k2* with the same interface.
     """
-    xn, xd = X.shape
-    yn, yd = Y.shape
-    Yp = np.zeros(Y.shape)
-    # Create a matrix with the weights, for convenience:
-    Yp = 1.0 / apply_pgen(pgen, Y) / yn
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    # Create a matrix with the inverse probability, for convenience:
+    Yp = 1.0 / apply_pgen(pgen, Y)
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, yn, axis=0)
-    YL = np.tile(Y, (xn, 1))
-    YP = np.tile(Yp, (xn, 1))
+    XL = np.repeat(X, ym, axis=0)
+    YL = np.tile(Y, (xm, 1))
+    YP = np.tile(Yp, (xm, 1))
     G = (XL == YL) * YP
-    return G.mean(axis=1).reshape(xn, yn)
+    return G.mean(axis=1).reshape(xm, ym)

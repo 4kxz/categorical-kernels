@@ -1,11 +1,12 @@
 import urllib.request
-import collections
 
 import numpy as np
 from numpy import random
 
+from .misc import binary_encoder
 
-def synthetic(m, n=25, c=4, p=0.5, encoder=False, random_state=None):
+
+def synthetic(m, n=25, c=4, p=0.5, random_state=None):
     """
     :param m: Number of examples to generate.
     :param n: Number of attributes for each example.
@@ -26,9 +27,9 @@ def synthetic(m, n=25, c=4, p=0.5, encoder=False, random_state=None):
     p **= 2.0  # Makes the effect of the parameter more linear.
     a = c + 2  # Number of attribute values.
     # Assign class to each example:
-        # y = random.randint(c, size=m)
-    k = [float(i % c) for i in range(m)]
-    y = random.choice(k, m, replace=False)
+    y = random.randint(c, size=m)
+    # k = [float(i % c) for i in range(m)]
+    # y = random.choice(k, m, replace=False)
     # Generate attributes:
     X = np.zeros((m, n))
     for j in range(n):
@@ -38,35 +39,33 @@ def synthetic(m, n=25, c=4, p=0.5, encoder=False, random_state=None):
         unique = random.choice(values, c, replace=False)
         # The rest are common attributes:
         common = list(set(values) - set(unique))
+        common = (-1, -2)
         # Generate attributes:
         for i in range(m):
             # Choose to assing a random attribute or a unique one:
             rand = random.random() > (c / a * p)
             value = random.choice(common) if rand else unique[y[i]]
             X[i][j] = value
-    # When encoder is True, return a binary encoder for the dataset. The
-    # encoder is necessary because small datasets may not contain instances of
-    # every single category in the dataset, making it impossible to infer the
-    # correct binarization from just part of the whole dataset.
-    if not encoder:
-        return X, y
-    else:
-        def binary_encoder(X):
-            # Each attribute has a value between 0 and `a`.
-            # We create the matrix with zeros, with a column for each possible
-            # category of each attribute, then set to one the corresponding
-            # column for each example.
-            Y = np.zeros((m, n * a))
-            # For each attribute:
-            for i in range(m):
-                for j in range(n):
-                    v = X[i][j]
-                    Y[i][j * a + v] = 1
-            return Y
-        return X, y, binary_encoder
+    # Also return a binary encoder. The encoder is necessary because small
+    # datasets may not contain instances of every single category in the
+    # dataset, making it impossible to infer the correct binarization from just
+    # part of the whole dataset.
+    def custom_binary_encoder(X):
+        # Each attribute has a value between 0 and `a`.
+        # We create the matrix with zeros, with a column for each possible
+        # category of each attribute, then set to one the corresponding
+        # column for each example.
+        Y = np.zeros((m, n * a))
+        # For each attribute:
+        for i in range(m):
+            for j in range(n):
+                v = X[i][j]
+                Y[i][j * a + v] = 1
+        return Y
+    return X, y, custom_binary_encoder
 
 
-def gmonks(m, d=3, random_state=None):
+def gmonks(m, d=2, random_state=None):
     """
     :param m: Number of examples to generate.
     :param d: Number of blocks of features for each example.
@@ -100,7 +99,7 @@ def gmonks(m, d=3, random_state=None):
             fk += 1 if p2 and not(p1 and p3) else 0
             x[i] += fj
         y.append(fk >= d / 2)
-    return np.array(x), np.array(y)
+    return np.array(x), np.array(y), binary_encoder
 
 
 def promoters(random_state=None):
@@ -136,32 +135,27 @@ def soybean(random_state=None):
     """
     # TODO: Add shuffle.
     random.seed(random_state)
+    X, y = [], []
+    encode = lambda x: 0 if x == '?' else int(x) + 1
+    train_size = 0
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'soybean/soybean-large.data'
     ) as promoters_data:
-        X, y = [], []
-        encode = lambda x: 0 if x == '?' else int(x) + 1
         for line in promoters_data:
             seq = line.decode('ascii').split(',')
             y.append(seq[0])
             X.append([encode(x.strip()) for x in seq[2:]])
-        X, y = np.array(X), np.array(y)
-        return X,  y
-
-
-def soybean_test(random_state=None):
-    # TODO: Add shuffle.
-    random.seed(random_state)
+            train_size += 1
+    test_size = 0
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'soybean/soybean-large.test'
     ) as promoters_data:
-        X, y = [], []
-        encode = lambda x: 0 if x == '?' else int(x) + 1
         for line in promoters_data:
             seq = line.decode('ascii').split(',')
             y.append(seq[0])
             X.append([encode(x.strip()) for x in seq[2:]])
-        X, y = np.array(X), np.array(y)
-        return X,  y
+            test_size += 1
+    X, y = np.array(X), np.array(y)
+    return X, y, train_size, binary_encoder
