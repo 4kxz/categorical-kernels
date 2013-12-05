@@ -53,10 +53,10 @@ class GridSearchK0:
     def fit(self, X, y):
         clf = SVC(kernel='precomputed')
         best_result = Results(best_score_=0, best_params_=None)
-        for prev, comp, post in self.functions:
+        for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post in ('f1', 'f2')
             for g in self.gammas if uses_gammas else [None]:
-                p = dict(prev=prev, comp=comp, post=post, gamma=g)
+                p = dict(prev=prev, post=post, gamma=g)
                 gram = fast_k0(X, X, **p)
                 grid = GridSearchCV(clf, **self.kwargs)
                 grid.fit(gram, y)
@@ -77,11 +77,11 @@ class GridSearchK1:
     def fit(self, X, X_pgen, y):
         clf = SVC(kernel='precomputed')
         best_result = Results(best_score_=0, best_params_=None)
-        for prev, comp, post in self.functions:
+        for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post in ('f1', 'f2')
             for g in self.gammas if uses_gammas else [None]:
                 for a in self.alphas:
-                    p = dict(alpha=a, prev=prev, comp=comp, post=post, gamma=g)
+                    p = dict(alpha=a, prev=prev, post=post, gamma=g)
                     gram = fast_k1(X, X, X_pgen, **p)
                     grid = GridSearchCV(clf, **self.kwargs)
                     grid.fit(gram, y)

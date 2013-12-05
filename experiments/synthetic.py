@@ -32,77 +32,71 @@ nextid = lastid + 1
 
 
 # Generate a dataset:
-data = dict(m=320, n=25, c=4, p=0.5, seed=nextid, encoder=True)
-X, y, benc = synthetic(**data)
+data_args = dict(m=150, n=25, c=4, p=0.5, random_state=nextid)
+X, y, bincoder = synthetic(**data_args)
 # Split the data in train and test:
 split = cv.train_test_split(X, y, test_size=0.5, random_state=nextid)
 X_train, X_test, y_train, y_test = split
-X_train_pgen = get_pgen(X_train)
-X_train_prep =  benc(X_train)
-X_test_prep = benc(X_test)
+Xb_train =  bincoder(X_train)
+Xb_test = bincoder(X_test)
+pgen = get_pgen(X_train)
 # Specify the cross-validation to use
-
+cvf = cv.StratifiedKFold(y_train, 5)
 
 
 # Fit
 
 # RBF
 clf = svm.SVC(kernel='rbf')
-costs = 10.0 ** np.arange(-1, 5)
-gammas = 2.0 ** np.arange(-12, -4)
+costs = 10.0 ** np.arange(-1, 8)
+gammas = 2.0 ** np.arange(-15, 1)
 params = dict(C=costs, gamma=gammas)
 
-grid = gs.GridSearchCV(clf, param_grid=params, cv=10, random_state=nextid)
-grid.fit(X_train_prep, y_train)
+grid = gs.GridSearchCV(clf, param_grid=params, cv=cvf)
+grid.fit(Xb_train, y_train)
 
 rbf_fit = grid.best_params_
 
 # K0
-costs = 10.0 ** np.arange(-1, 4)
+costs = 10.0 ** np.arange(-1, 8)
 functions = [
-    ('ident', 'mean', 'ident'),
-    ('ident', 'mean', 'f1'),
-    ('ident', 'mean', 'f2'),
-    ('ident', 'prod', 'ident'),
-    ('ident', 'prod', 'f1'),
-    ('ident', 'prod', 'f2'),
-    ('f1', 'mean', 'ident'),
-    ('f1', 'prod', 'ident'),
+    ('ident', 'ident'),
+    ('ident', 'f1'),
+    ('f1', 'ident'),
 ]
-gammas = 2.0 ** np.arange(-3, 2)
+gammas = 2.0 ** np.arange(-6, 5)
+params = dict(C=costs)
 
-grid = GridSearchK0(functions, gammas, param_grid=dict(C=costs), cv=10, random_state=nextid)
+grid = GridSearchK0(functions, gammas, param_grid=params, cv=cvf)
 grid = grid.fit(X_train, y_train)
 
 k0_fit = grid.best_params_
 
 # K1
 clf = svm.SVC(kernel='precomputed')
-costs = 10.0 ** np.arange(-1, 5)
+costs = 10.0 ** np.arange(-1, 8)
 functions = [
-    ('ident', 'mean', 'ident'),
-    ('ident', 'mean', 'f1'),
-    ('ident', 'mean', 'f2'),
-    ('ident', 'prod', 'ident'),
-    ('ident', 'prod', 'f1'),
-    ('ident', 'prod', 'f2'),
-    ('f1', 'mean', 'ident'),
-    ('f1', 'prod', 'ident'),
+    ('ident', 'ident'),
+    ('ident', 'f1'),
+    ('ident', 'f2'),
+    ('f1', 'ident'),
 ]
-gammas = 2.0 ** np.arange(-3, 2)
-alphas = 2.0 ** np.arange(-1, 2)
+gammas = 2.0 ** np.arange(-6, 4)
+alphas = 2.0 ** np.arange(-4, 4)
+params = dict(C=costs)
 
-grid = GridSearchK1(alphas, functions, gammas, param_grid=dict(C=costs), cv=10, random_state=nextid)
-grid = grid.fit(X_train, X_train_pgen, y_train)
+grid = GridSearchK1(alphas, functions, gammas, param_grid=params, cv=cvf)
+grid = grid.fit(X_train, pgen, y_train)
 
 k1_fit = grid.best_params_
 
 # K2
 clf = svm.SVC(kernel='precomputed')
-costs = 10.0 ** np.arange(-1, 4)
-param_grid = dict(C=costs)
-grid = gs.GridSearchCV(clf, param_grid=param_grid, cv=10, random_state=nextid)
-gram = fast_k2(X_train, X_train, X_train_pgen)
+costs = 10.0 ** np.arange(-1, 8)
+params = dict(C=costs)
+
+grid = gs.GridSearchCV(clf, param_grid=params, cv=cvf)
+gram = fast_k2(X_train, X_train, pgen)
 grid.fit(gram, y_train)
 
 k2_fit = grid.best_params_
@@ -113,10 +107,10 @@ results = {}
 
 # RBF
 clf = svm.SVC(kernel='rbf', **rbf_fit)
-clf.fit(X_train_prep, y_train)
-y_predict = clf.predict(X_test_prep)
+clf.fit(Xb_train, y_train)
+y_predict = clf.predict(Xb_test)
 
-results['rbf'] = (y_predict == y_test).mean()
+results['rbf'] = {'params': rbf_fit, 'score': (y_predict == y_test).mean()}
 
 # K0
 ra, rb = k0_fit
@@ -124,27 +118,29 @@ clf = svm.SVC(kernel='precomputed', **ra)
 clf.fit(fast_k0(X_train, X_train, **rb), y_train)
 y_predict = clf.predict(fast_k0(X_test, X_train, **rb))
 
-results['k0'] = (y_predict == y_test).mean()
+results['k0'] = {'params': k0_fit, 'score': (y_predict == y_test).mean()}
 
 # K1
 ra, rb = k1_fit
 clf = svm.SVC(kernel='precomputed', **ra)
-clf.fit(fast_k1(X_train, X_train, X_train_pgen, **rb), y_train)
-y_predict = clf.predict(fast_k1(X_test, X_train, X_train_pgen, **rb))
+clf.fit(fast_k1(X_train, X_train, pgen, **rb), y_train)
+y_predict = clf.predict(fast_k1(X_test, X_train, pgen, **rb))
 
-results['k1'] = (y_predict == y_test).mean()
+results['k1'] = {'params': k1_fit, 'score': (y_predict == y_test).mean()}
 
 # K2
 clf = svm.SVC(kernel='precomputed', C=10.0)
-clf.fit(fast_k2(X_train, X_train, X_train_pgen), y_train)
-y_predict = clf.predict(fast_k2(X_test, X_train, X_train_pgen))
+clf.fit(fast_k2(X_train, X_train, pgen), y_train)
+y_predict = clf.predict(fast_k2(X_test, X_train, pgen))
 
-results['k2'] = (y_predict == y_test).mean()
+results['k2'] = {'params': k2_fit, 'score': (y_predict == y_test).mean()}
 
 
 # Update file
 
-results['meta'] = {'id': nextid, 'data': data, 'datetime': time.asctime()}
+results['id'] = nextid
+results['data_args'] = data_args
+results['timestamp'] = time.asctime()
 
 data.append(results)
 

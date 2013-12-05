@@ -39,7 +39,6 @@ def synthetic(m, n=25, c=4, p=0.5, random_state=None):
         unique = random.choice(values, c, replace=False)
         # The rest are common attributes:
         common = list(set(values) - set(unique))
-        common = (-1, -2)
         # Generate attributes:
         for i in range(m):
             # Choose to assing a random attribute or a unique one:
@@ -55,6 +54,7 @@ def synthetic(m, n=25, c=4, p=0.5, random_state=None):
         # We create the matrix with zeros, with a column for each possible
         # category of each attribute, then set to one the corresponding
         # column for each example.
+        m, n = X.shape
         Y = np.zeros((m, n * a))
         # For each attribute:
         for i in range(m):
@@ -115,10 +115,10 @@ def promoters(random_state=None):
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'molecular-biology/promoter-gene-sequences/promoters.data'
-    ) as promoters_data:
+    ) as data:
         categories = {'a': 0, 'c': 1, 'g': 2, 't': 3}
         X, y = [], []
-        for line in promoters_data:
+        for line in data:
             cat, _, seq = line.decode('ascii').split(',')
             X.append([categories[i] for i in seq.strip()])
             y.append(cat == '+')
@@ -141,21 +141,43 @@ def soybean(random_state=None):
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'soybean/soybean-large.data'
-    ) as promoters_data:
-        for line in promoters_data:
+    ) as data:
+        for line in data:
             seq = line.decode('ascii').split(',')
             y.append(seq[0])
-            X.append([encode(x.strip()) for x in seq[2:]])
+            X.append([encode(x.strip()) for x in seq[1:]])
             train_size += 1
     test_size = 0
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'soybean/soybean-large.test'
-    ) as promoters_data:
-        for line in promoters_data:
+    ) as data:
+        for line in data:
             seq = line.decode('ascii').split(',')
             y.append(seq[0])
-            X.append([encode(x.strip()) for x in seq[2:]])
+            X.append([encode(x.strip()) for x in seq[1:]])
             test_size += 1
     X, y = np.array(X), np.array(y)
     return X, y, train_size, binary_encoder
+
+
+def mushroom(random_state=None):
+    """
+    Downloads the mushroom dataset from the internet.
+
+    :returns: - A matrix of size :math:`? \\times ?` with the dataset.
+              - An array with the class of the `?` examples.
+    """
+    # TODO: Add shuffle.
+    random.seed(random_state)
+    X, y = [], []
+    with urllib.request.urlopen(
+        'http://archive.ics.uci.edu/ml/machine-learning-databases/'
+        'mushroom/agaricus-lepiota.data'
+    ) as data:
+        for line in data:
+            seq = line.decode('ascii').split(',')
+            y.append(seq[0])
+            X.append([ord(x.strip()) for x in seq[1:]])
+    X, y = np.array(X), np.array(y)
+    return X, y, binary_encoder

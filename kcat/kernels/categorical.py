@@ -58,10 +58,6 @@ def apply_pgen(pgen, X):
 def get_function(name, params={}):
     if callable(name):
         return name
-    elif name == 'mean':
-        return lambda x: np.mean(x)
-    elif name == 'prod':
-        return lambda x: np.prod(x)
     elif name == 'ident':
         return lambda k, *args, **kwargs: k(*args, **kwargs)
     elif name == 'f1':
@@ -82,10 +78,6 @@ def get_function(name, params={}):
 def get_vector_function(name, params={}):
     if callable(name):
         return name
-    elif name == 'mean':
-        return lambda x: np.mean(x, axis=1)
-    elif name == 'prod':
-        return lambda x: np.prod(x, axis=1)
     elif name == 'ident':
         return lambda x: x
     elif name == 'f1':
@@ -104,64 +96,53 @@ def k0_univ(x, y):
     """Univariate kernel k0."""
     return 0.0 if x != y else 1.0
 
-def k0_mult(u, v, prev, comp):
+def k0_mult(u, v, prev):
     """
     Multivariate kernel k0.
 
     :param u: Data vector.
     :param v: Data vector.
-    :param prev: Function to transform the data before applying `comp`.
-    :param comp: Function that takes a vector and returns a single value.
+    :param prev: Function to transform the data before composing.
 
     :returns: Value of applying the kernel ``k0_univ`` between each pair of
         attributes in `u` and `v`, and then the composition function.
     """
     # List comprehension takes care of applying k0 and prev for each element:
-    return comp([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
+    return np.mean([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
 
-def k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
+def k0(X, Y, prev='ident', post='ident', **kwargs):
     """
     Computes the gram matrix.
 
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
     :param Y: Data matrix.
-    :param prev: Function to transform the data before applying `comp`. Accepts
-        ``'ident'`` and ``'f1'`` or a Python function.
-    :param comp: Function that takes a vector and returns a single value.
-        Accepts ``'mean'`` and ``'prod'`` or a Python function.
-    :param post: Function to transform the data after applying `comp`. Accepts
-        ``'ident'``, ``'f1'`` and  ``'f2'`` or a Python function.
-    :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
+    :param prev: Function to transform the data before composing. Accepts
+        ``'ident'``, ``'f1'`` or a Python function.
+    :param post: Function to transform the data after composing. Accepts
+        ``'ident'``, ``'f1'`` or a Python function.
+    :param gamma: (optional) Parameter required by ``'f1'``.
 
     :returns: Gram matrix obtained applying ``k0_mult`` between each pair of
         elements in `X` and `Y`.
     """
     prevf = get_function(prev, kwargs)
-    compf = get_function(comp, kwargs)
     postf =  get_function(post, kwargs)
     # The gram matrix is computed by iterating each vector in X and Y:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = postf(k0_mult, u, v, prevf, compf)
+            G[i][j] = postf(k0_mult, u, v, prevf)
     return G
 
-def fast_k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
+def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
     """
     An optimised version of *k0* with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
     """
-    # Since the multivariate kernel is the overlap, k(u, u) is always 1
-    # and it can be simplified, independently of whether the composition is
-    # the mean or the product:
-    if post == 'f2':
-        gamma = kwargs['gamma']
-        post = lambda x: np.exp(gamma * (2.0 * x - 2.0))
     prevf = get_vector_function(prev, kwargs)
-    compf = get_vector_function(comp, kwargs)
     postf = get_vector_function(post, kwargs)
     xm, xn = X.shape
     ym, yn = Y.shape
@@ -169,7 +150,7 @@ def fast_k0(X, Y, prev='ident', comp='mean', post='ident', **kwargs):
     XL = np.repeat(X, ym, axis=0)
     YL = np.tile(Y, (xm, 1))
     G = XL == YL
-    G = postf(compf(prevf(G)))
+    G = postf(np.mean(prevf(G), axis=1))
     return G.reshape(xm, ym)
 
 #------------------------------------------------------------------------------
@@ -187,7 +168,7 @@ def k1_univ(x, y, h, p):
     """
     return 0.0 if x != y else h(p(x))
 
-def k1_mult(u, v, h, pgen, prev, comp):
+def k1_mult(u, v, h, pgen, prev):
     """
     Multivariate kernel k1.
 
@@ -195,17 +176,16 @@ def k1_mult(u, v, h, pgen, prev, comp):
     :param v: Data vector.
     :param h: Inverting function.
     :param pgen: Probability mass function generator (*see get_pgen*).
-    :param prev: Function to transform the data before applying `comp`.
-    :param comp: Function that takes a vector and returns a single value.
+    :param prev: Function to transform the data before composing.
 
     :returns: Value of applying the kernel ``k1_univ`` between each pair of
         attributes in `u` and `v`, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
-    return comp([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
+    r = np.mean([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
+    return r
 
-def k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
-        **kwargs):
+def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     """
     Computes the gram matrix.
 
@@ -214,12 +194,10 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
     :param Y: Data matrix.
     :param pgen: Probability mass function generator (*see get_pgen*).
     :param alpha: Parameter for the inverting function *h*.
-    :param prev: Function to transform the data before applying `comp`. Accepts
-        ``'ident'`` and ``'f1'`` or a Python function.
-    :param comp: Function that takes a vector and returns a single value.
-        Accepts ``'mean'`` and ``'prod'`` or a Python function.
-    :param post: Function to transform the data after applying `comp`. Accepts
-        ``'ident'``, ``'f1'`` and  ``'f2'`` or a Python function.
+    :param prev: Function to transform the data before composing. Accepts
+        ``'ident'``, ``'f1'`` or a Python function.
+    :param post: Function to transform the data after composing. Accepts
+        ``'ident'``, ``'f1'``,  ``'f2'`` or a Python function.
     :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
 
     :returns: Gram matrix obtained applying ``k1_mult`` between each pair of
@@ -227,17 +205,15 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
     """
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     prevf = get_function(prev, kwargs)
-    compf = get_function(comp, kwargs)
     postf =  get_function(post, kwargs)
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = postf(k1_mult, u, v, h, pgen, prevf, compf)
+            G[i][j] = postf(k1_mult, u, v, h, pgen, prevf)
     return G
 
-def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
-        **kwargs):
+def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     """
     An optimised version of *k1* with the same interface.
 
@@ -247,7 +223,6 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     Py = h(apply_pgen(pgen, Y))
     prevf = get_vector_function(prev, kwargs)
-    compf = get_vector_function(comp, kwargs)
     postf = get_vector_function(post, kwargs) if post != 'f2' else None
     # The function f2 needs to be treated separately.
     xm, xn = X.shape
@@ -257,7 +232,7 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
     YL = np.tile(Y, (xm, 1))
     PY = np.tile(Py, (xm, 1))
     G = (XL == YL) * PY
-    G = compf(prevf(G))
+    G = np.mean(prevf(G), axis=1)
     # When post == 'f2', postf does nothing.
     # The actual post function is applied here:
     if post != 'f2':
@@ -270,8 +245,8 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', comp='mean', post='ident',
         Px = h(apply_pgen(pgen, X))
         GX = np.repeat(Px, ym, axis=0)
         GY = np.tile(Py, (xm, 1))
-        GX = compf(prevf(GX))
-        GY = compf(prevf(GY))
+        GX = np.mean(prevf(GX), axis=1)
+        GY = np.mean(prevf(GY), axis=1)
         # Apply f2:
         gamma = kwargs['gamma']
         G = np.exp(gamma * (2.0 * G - GX - GY))
