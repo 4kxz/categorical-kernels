@@ -8,6 +8,6 @@ Documentation
 Notebooks
 =========
 
-[Synthetic test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/Kernels%20-%20Performance%20on%20Synthetic.ipynb)
+[Synthetic test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Kernels%20-%20Performance%20on%20Synthetic.ipynb)
 
-[GMonks test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/Kernels%20-%20Performance%20on%20GMonks.ipynb)
+[GMonks test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Kernels%20-%20Performance%20on%20GMonks.ipynb)
