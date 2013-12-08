@@ -1,16 +1,14 @@
-.. categorical-kernels documentation master file, created by
-   sphinx-quickstart on Wed Nov 20 19:21:44 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Hello World
-===========
+Categorical data kernels for scikit-learn
+=========================================
 
 Welcome to categorical-kernels's documentation!
 
-.. toctree::
-   :maxdepth: 2
+Here's a full tree view of the library:
 
+.. toctree::
+   :maxdepth: 4
+
+   kcat
 
 
 Indices and tables
@@ -19,4 +17,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

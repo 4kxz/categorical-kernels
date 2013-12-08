@@ -1,3 +1,14 @@
+"""
+This module contains methods to compute the gram matrix using the kernel
+functions *K0*, *K1* and *K2*. The gram matrix can be used to train SVMs using
+scikit-learn.
+
+The methods :meth:`fast_k0`, :meth:`fast_k1` and :meth:`fast_k2` are
+recommended as they take advantage of numpy's vectorial operations and are
+much faster to compute. Their drawback is that they don't accept arbitrary
+Python functions as parameters.
+"""
+
 import numpy as np
 
 from .utils import apply_pgen
@@ -46,19 +57,19 @@ def get_vector_function(name, params={}):
 #------------------------------------------------------------------------------
 
 def k0_univ(x, y):
-    """Univariate kernel k0."""
+    """Univariate kernel *K0*."""
     return 0.0 if x != y else 1.0
 
 def k0_mult(u, v, prev):
     """
-    Multivariate kernel k0.
+    Multivariate kernel *K0*.
 
     :param u: Data vector.
     :param v: Data vector.
     :param prev: Function to transform the data before composing.
 
-    :returns: Value of applying the kernel ``k0_univ`` between each pair of
-        attributes in `u` and `v`, and then the composition function.
+    :returns: Value of applying the kernel :meth:`k0_univ` between each pair of
+        attributes in *u* and *v*, and then the composition function.
     """
     # List comprehension takes care of applying k0 and prev for each element:
     return np.mean([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
@@ -76,8 +87,8 @@ def k0(X, Y, prev='ident', post='ident', **kwargs):
         ``'ident'``, ``'f1'`` or a Python function.
     :param gamma: (optional) Parameter required by ``'f1'``.
 
-    :returns: Gram matrix obtained applying ``k0_mult`` between each pair of
-        elements in `X` and `Y`.
+    :returns: Gram matrix obtained applying :meth:`k0_mult` between each pair
+        of elements in *X* and *Y*.
     """
     prevf = get_function(prev, kwargs)
     postf =  get_function(post, kwargs)
@@ -90,7 +101,7 @@ def k0(X, Y, prev='ident', post='ident', **kwargs):
 
 def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
     """
-    An optimised version of *k0* with the same interface.
+    An optimised version of :meth:`k0` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
@@ -112,7 +123,7 @@ def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
 
 def k1_univ(x, y, h, p):
     """
-    Univariate kernel k1.
+    Univariate kernel *K1*.
 
     :param x: Value.
     :param y: Value.
@@ -123,16 +134,17 @@ def k1_univ(x, y, h, p):
 
 def k1_mult(u, v, h, pgen, prev):
     """
-    Multivariate kernel k1.
+    Multivariate kernel *K1*.
 
     :param u: Data vector.
     :param v: Data vector.
     :param h: Inverting function.
-    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param pgen: Probability mass function generator (see
+        :meth:`~kcat.kernels.utils.get_pgen`).
     :param prev: Function to transform the data before composing.
 
-    :returns: Value of applying the kernel ``k1_univ`` between each pair of
-        attributes in `u` and `v`, and then the composition function.
+    :returns: Value of applying the kernel :meth:`k1_univ` between each pair of
+        attributes in *u* and *v*, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
     r = np.mean([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
@@ -145,7 +157,8 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
     :param Y: Data matrix.
-    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param pgen: Probability mass function generator (see
+        :meth:`~kcat.kernels.utils.get_pgen`).
     :param alpha: Parameter for the inverting function *h*.
     :param prev: Function to transform the data before composing. Accepts
         ``'ident'``, ``'f1'`` or a Python function.
@@ -153,8 +166,8 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
         ``'ident'``, ``'f1'``,  ``'f2'`` or a Python function.
     :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
 
-    :returns: Gram matrix obtained applying ``k1_mult`` between each pair of
-        elements in `X` and `Y`.
+    :returns: Gram matrix obtained applying :meth:`k1_mult` between each pair
+        of elements in *X* and *Y*.
     """
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     prevf = get_function(prev, kwargs)
@@ -168,7 +181,7 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
 
 def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     """
-    An optimised version of *k1* with the same interface.
+    An optimised version of :meth:`k1` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
@@ -211,7 +224,7 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
 
 def k2_univ(x, y, p, n):
     """
-    Univariate kernel k2.
+    Univariate kernel *K2*.
 
     :param x: Value.
     :param y: Value.
@@ -222,15 +235,16 @@ def k2_univ(x, y, p, n):
 
 def k2_mult(u, v, pgen, n):
     """
-    Multivariate kernel k2.
+    Multivariate kernel *K2*.
 
     :param u: Data vector.
     :param v: Data vector.
-    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param pgen: Probability mass function generator (see
+        :meth:`~kcat.kernels.utils.get_pgen`).
     :param n: Number of elements.
 
-    :returns: Value of applying the kernel ``k2_univ`` between each pair of
-        attributes in `u` and `v`, and then the composition function.
+    :returns: Value of applying the kernel :meth:`k2_univ` between each pair of
+        attributes in *u* and *v*, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
     return np.mean([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
@@ -242,10 +256,11 @@ def k2(X, Y, pgen):
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
     :param Y: Data matrix.
-    :param pgen: Probability mass function generator (*see get_pgen*).
+    :param pgen: Probability mass function generator (see
+        :meth:`~kcat.kernels.utils.get_pgen`).
 
-    :returns: Gram matrix obtained applying ``k2_mult`` between each pair of
-        elements in `X` and `Y`.
+    :returns: Gram matrix obtained applying :meth:`k2_mult` between each pair
+        of elements in *X* and *Y*.
     """
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
@@ -256,7 +271,7 @@ def k2(X, Y, pgen):
 
 def fast_k2(X, Y, pgen):
     """
-    An optimised version of *k2* with the same interface.
+    An optimised version of :meth:`k2` with the same interface.
     """
     xm, xn = X.shape
     ym, yn = Y.shape

@@ -9,12 +9,15 @@ from .misc import binary_encoder
 def synthetic(m, n=25, c=4, p=0.5, random_state=None):
     """
     :param m: Number of examples to generate.
+    :type m: int
     :param n: Number of attributes for each example.
+    :type n: int
     :param c: Number of classes.
+    :type c: int
     :param p: Change probability of class-unique attributes.
     :type p: float
 
-    The effect of the parameter `p` according to its value:
+    The effect of the *p* according to its value:
 
     - *p* close to 0: Class attributes almost never happen (random/harder).
     - *p* close to 1: Class attributes happen as often as the rest (easier).
