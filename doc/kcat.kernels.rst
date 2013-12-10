@@ -37,6 +37,7 @@ kcat.kernels.train_test module
 
 .. automodule:: kcat.kernels.train_test
     :members:
+    :undoc-members:
 
 
 kcat.kernels.utils module

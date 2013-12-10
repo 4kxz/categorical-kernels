@@ -5,7 +5,7 @@ import time
 
 from sklearn import cross_validation as cv
 
-from kcat.datasets import synthetic
+from kcat.datasets import gmonks
 from kcat.kernels.train_test import (
     train_rbf, train_k0, train_k1, train_k2,
     test_rbf, test_k0, test_k1, test_k2,
@@ -31,8 +31,8 @@ nextid = lastid + 1
 # Generate dataset
 #------------------------------------------------------------------------------
 
-data_args = dict(m=300, n=25, c=4, p=0.5, random_state=nextid)
-X, y, bincoder = synthetic(**data_args)
+data_args = dict(m=300, d=1, random_state=nextid)
+X, y, bincoder = gmonks(**data_args)
 # Split the data in train and test:
 split = cv.train_test_split(X, y, test_size=2/3, random_state=nextid)
 X_train, X_test, y_train, y_test = split

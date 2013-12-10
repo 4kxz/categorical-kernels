@@ -3,14 +3,14 @@ import numpy as np
 
 def binary_encoder(X):
     """
-    Takes a matrix with a categorical variables and encodes them
-    using ¿binarization? Say, for three categories:
+    Takes a matrix with a categorical variables and encodes them in dummy
+    variable form. Say, for three categories:
 
     * 0 → 1 0 0
     * 1 → 0 1 0
     * 2 → 0 0 1
 
-    Whatever that's called. So that it can be used with RBF kernel.
+    So that it can be used with RBF kernel.
     """
     n, d = X.shape
     y = [[] for _ in range(n)]
@@ -32,4 +32,3 @@ def binary_encoder(X):
             new[index[v]] = 1
             y[j] += new
     return np.array(y)
-

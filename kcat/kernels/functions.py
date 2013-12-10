@@ -231,7 +231,7 @@ def k2_univ(x, y, p, n):
     :param p: Probability function.
     :param n: Number of elements.
     """
-    return 0.0 if x != y else 1.0 / p(x) / n
+    return 0.0 if x != y else 1.0 / p(x)
 
 def k2_mult(u, v, pgen, n):
     """
@@ -247,7 +247,7 @@ def k2_mult(u, v, pgen, n):
         attributes in *u* and *v*, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
-    return np.mean([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
+    return np.sum([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
 
 def k2(X, Y, pgen):
     """
@@ -266,7 +266,7 @@ def k2(X, Y, pgen):
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = k2_mult(u, v, pgen, len(Y))
+            G[i][j] = np.sqrt(k2_mult(u, v, pgen, len(Y)))
     return G
 
 def fast_k2(X, Y, pgen):
@@ -282,4 +282,4 @@ def fast_k2(X, Y, pgen):
     YL = np.tile(Y, (xm, 1))
     YP = np.tile(Yp, (xm, 1))
     G = (XL == YL) * YP
-    return G.mean(axis=1).reshape(xm, ym)
+    return np.sqrt(G.sum(axis=1)).reshape(xm, ym)

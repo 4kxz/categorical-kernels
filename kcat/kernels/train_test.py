@@ -1,3 +1,7 @@
+"""
+Boilerplate to train and test various models.
+"""
+
 import collections
 
 from sklearn import svm
@@ -12,26 +16,28 @@ from .parameters import PARAMS_RBF, PARAMS_K0, PARAMS_K1, PARAMS_K2
 
 Fit = collections.namedtuple('Fit', 'estimator, params, score')
 
+max_it = 2**15
+
 def train_rbf(Xb_train, y_train, cvf):
-    clf = svm.SVC(kernel='rbf')
+    clf = svm.SVC(kernel='rbf', max_iter=max_it)
     result = GridSearchCV(clf, cv=cvf, **PARAMS_RBF)
     result.fit(Xb_train, y_train)
     return Fit(result.best_estimator_, result.best_params_, result.best_score_)
 
 def train_k0(X_train, y_train, cvf):
-    clf = svm.SVC(kernel='precomputed')
+    clf = svm.SVC(kernel='precomputed', max_iter=max_it)
     result = GridSearchK0(clf, cv=cvf, **PARAMS_K0)
     result.fit(X_train, y_train)
     return Fit(result.best_estimator_, result.best_params_, result.best_score_)
 
 def train_k1(X_train, y_train, pgen, cvf):
-    clf = svm.SVC(kernel='precomputed')
+    clf = svm.SVC(kernel='precomputed', max_iter=max_it)
     result = GridSearchK1(clf, cv=cvf, **PARAMS_K1)
     result.fit(X_train, y_train, pgen)
     return Fit(result.best_estimator_, result.best_params_, result.best_score_)
 
 def train_k2(X_train, y_train, pgen, cvf):
-    clf = svm.SVC(kernel='precomputed')
+    clf = svm.SVC(kernel='precomputed', max_iter=max_it)
     result = GridSearchK2(clf, cv=cvf, **PARAMS_K2)
     result.fit(X_train, y_train, pgen)
     return Fit(result.best_estimator_, result.best_params_, result.best_score_)

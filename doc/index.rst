@@ -1,9 +1,10 @@
 Categorical data kernels for scikit-learn
 =========================================
 
-Welcome to categorical-kernels's documentation!
+The library can be downloaded from the
+`GitHub repository <https://github.com/Alkxzv/categorical-kernels>`_.
 
-Here's a full tree view of the library:
+Here's a full view of the library tree:
 
 .. toctree::
    :maxdepth: 4

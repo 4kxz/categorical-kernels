@@ -105,7 +105,7 @@ def gmonks(m, d=2, random_state=None):
     return np.array(x), np.array(y), binary_encoder
 
 
-def promoters(random_state=None):
+def promoters():
     """
     Downloads the promoter gene sequences dataset from the internet and loads
     them into a data set.
@@ -113,8 +113,6 @@ def promoters(random_state=None):
     :returns: - A matrix of size :math:`106 \\times 57` with the dataset.
               - An array with the class of the `106` examples.
     """
-    # TODO: Add shuffle.
-    random.seed(random_state)
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
         'molecular-biology/promoter-gene-sequences/promoters.data'
@@ -129,15 +127,13 @@ def promoters(random_state=None):
         return X,  y
 
 
-def soybean(random_state=None):
+def soybean():
     """
     Downloads the soybean dataset from the internet.
 
     :returns: - A matrix of size :math:`? \\times ?` with the dataset.
               - An array with the class of the `?` examples.
     """
-    # TODO: Add shuffle.
-    random.seed(random_state)
     X, y = [], []
     encode = lambda x: 0 if x == '?' else int(x) + 1
     train_size = 0
@@ -164,15 +160,13 @@ def soybean(random_state=None):
     return X, y, train_size, binary_encoder
 
 
-def mushroom(random_state=None):
+def mushroom():
     """
     Downloads the mushroom dataset from the internet.
 
     :returns: - A matrix of size :math:`? \\times ?` with the dataset.
               - An array with the class of the `?` examples.
     """
-    # TODO: Add shuffle.
-    random.seed(random_state)
     X, y = [], []
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
