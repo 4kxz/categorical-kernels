@@ -16,7 +16,7 @@ from .parameters import PARAMS_RBF, PARAMS_K0, PARAMS_K1, PARAMS_K2
 
 Fit = collections.namedtuple('Fit', 'estimator, params, score')
 
-max_it = 2**15
+max_it = 2**20
 
 def train_rbf(Xb_train, y_train, cvf):
     clf = svm.SVC(kernel='rbf', max_iter=max_it)
