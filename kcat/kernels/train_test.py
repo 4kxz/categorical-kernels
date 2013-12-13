@@ -61,7 +61,7 @@ def test_k1(clf, X_train, X_test, y_test, pgen, params):
     prediction = clf.predict(gram)
     return (prediction == y_test).mean()
 
-def test_k2(clf, X_train, X_test, y_test, pgen):
-    gram = fast_k2(X_test, X_train, pgen)
+def test_k2(clf, X_train, X_test, y_test, pgen, params):
+    gram = fast_k2(X_test, X_train, pgen, **params)
     prediction = clf.predict(gram)
     return (prediction == y_test).mean()

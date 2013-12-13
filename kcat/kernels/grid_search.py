@@ -88,8 +88,10 @@ class GridSearchK1:
 class GridSearchK2:
     """Find best parameters for *K2*."""
 
-    def __init__(self, clf, **kwargs):
+    def __init__(self, clf, functions, gammas, **kwargs):
         self.clf = clf
+        self.functions = functions
+        self.gammas = gammas
         self.params = kwargs
         self.best_estimator_ = None
         self.best_params_ = None
@@ -100,9 +102,14 @@ class GridSearchK2:
         Fit the model to the data matrix *X* and class vector *y*. *pgen* is
         a probability distribution, see :meth:`~kcat.kernels.utils.get_pgen`.
         """
-        gram = fast_k2(X, X, pgen)
-        result = GridSearchCV(self.clf, **self.params)
-        result.fit(gram, y)
-        self.best_estimator_ = result.best_estimator_
-        self.best_params_ = result.best_params_
-        self.best_score_ = result.best_score_
+        for prev, post in self.functions:
+            uses_gammas = prev == 'f1' or post in ('f1', 'f2')
+            for g in self.gammas if uses_gammas else [None]:
+                result = GridSearchCV(self.clf, **self.params)
+                params = dict(prev=prev, post=post, gamma=g)
+                gram = fast_k2(X, X, pgen, **params)
+                result.fit(gram, y)
+                if result.best_score_ >= self.best_score_:
+                    self.best_estimator_ = result.best_estimator_
+                    self.best_params_ = (result.best_params_, params)
+                    self.best_score_ = result.best_score_

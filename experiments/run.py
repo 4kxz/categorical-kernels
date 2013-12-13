@@ -90,7 +90,7 @@ if __name__ == '__main__':
         }
         results['kernels']['k2'] = {
             'params': k1.params,
-            'score': test_k2(k2.estimator, X_train, X_test, y_test, pgen),
+            'score': test_k2(k2.estimator, X_train, X_test, y_test, pgen, k2.params[1]),
         }
         # Save results:
         data.append(results)

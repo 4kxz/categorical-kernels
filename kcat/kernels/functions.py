@@ -187,7 +187,7 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     work with numpy arrays.
     """
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    Py = h(apply_pgen(pgen, Y))
+    Yp = h(apply_pgen(pgen, Y))
     prevf = get_vector_function(prev, kwargs)
     postf = get_vector_function(post, kwargs) if post != 'f2' else None
     # The function f2 needs to be treated separately.
@@ -196,8 +196,8 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     # The gram matrix is computed using vectorised operations because speed:
     XL = np.repeat(X, ym, axis=0)
     YL = np.tile(Y, (xm, 1))
-    PY = np.tile(Py, (xm, 1))
-    G = (XL == YL) * PY
+    YP = np.tile(Yp, (xm, 1))
+    G = (XL == YL) * YP
     G = np.mean(prevf(G), axis=1)
     # When post == 'f2', postf does nothing.
     # The actual post function is applied here:
@@ -210,7 +210,7 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
         # x in X and y in Y:
         Px = h(apply_pgen(pgen, X))
         GX = np.repeat(Px, ym, axis=0)
-        GY = np.tile(Py, (xm, 1))
+        GY = np.tile(Yp, (xm, 1))
         GX = np.mean(prevf(GX), axis=1)
         GY = np.mean(prevf(GY), axis=1)
         # Apply f2:
@@ -233,7 +233,7 @@ def k2_univ(x, y, p, n):
     """
     return 0.0 if x != y else 1.0 / p(x)
 
-def k2_mult(u, v, pgen, n):
+def k2_mult(u, v, pgen, n, prev):
     """
     Multivariate kernel *K2*.
 
@@ -242,14 +242,16 @@ def k2_mult(u, v, pgen, n):
     :param pgen: Probability mass function generator (see
         :meth:`~kcat.kernels.utils.get_pgen`).
     :param n: Number of elements.
+    :param prev: Function to transform the data before composing.
 
     :returns: Value of applying the kernel :meth:`k2_univ` between each pair of
         attributes in *u* and *v*, and then the composition function.
     """
     # Compute the kernel applying the previous and composition functions:
-    return np.sum([k2_univ(u[i], v[i], pgen(i), n) for i in range(len(u))])
+    r = np.sum([prev(k2_univ(u[i], v[i], pgen(i), n)) for i in range(len(u))])
+    return r
 
-def k2(X, Y, pgen):
+def k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     """
     Computes the gram matrix.
 
@@ -258,28 +260,58 @@ def k2(X, Y, pgen):
     :param Y: Data matrix.
     :param pgen: Probability mass function generator (see
         :meth:`~kcat.kernels.utils.get_pgen`).
+    :param prev: Function to transform the data before composing. Accepts
+        ``'ident'``, ``'f1'`` or a Python function.
+    :param post: Function to transform the data after composing. Accepts
+        ``'ident'``, ``'f1'``,  ``'f2'`` or a Python function.
+    :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
 
     :returns: Gram matrix obtained applying :meth:`k2_mult` between each pair
         of elements in *X* and *Y*.
     """
+    prevf = get_function(prev, kwargs)
+    postf =  get_function(post, kwargs)
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
         for j, v in enumerate(Y):
-            G[i][j] = np.sqrt(k2_mult(u, v, pgen, len(Y)))
+            G[i][j] = postf(np.sqrt(k2_mult(u, v, pgen, len(Y), prevf)))
     return G
 
-def fast_k2(X, Y, pgen):
+def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     """
     An optimised version of :meth:`k2` with the same interface.
+
+    Since the code is vectorised any Python functions passed as argument must
+    work with numpy arrays.
     """
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs) if post != 'f2' else None
+    # The function f2 needs to be treated separately.
     xm, xn = X.shape
     ym, yn = Y.shape
-    # Create a matrix with the inverse probability, for convenience:
     Yp = 1.0 / apply_pgen(pgen, Y)
     # The gram matrix is computed using vectorised operations because speed:
     XL = np.repeat(X, ym, axis=0)
     YL = np.tile(Y, (xm, 1))
     YP = np.tile(Yp, (xm, 1))
     G = (XL == YL) * YP
-    return np.sqrt(G.sum(axis=1)).reshape(xm, ym)
+    G = np.sqrt(np.sum(prevf(G), axis=1))
+    # When post == 'f2', postf does nothing.
+    # The actual post function is applied here:
+    if post != 'f2':
+        G = postf(G)
+    else:
+        # We know that: f2 = e ^ (gamma * (2 * k(x, y) - k(x, x) - k(y, y))).
+        # The current values of G are those of k(x, y).
+        # We need to compute the values of k(x, x) and k(y, y) for each
+        # x in X and y in Y:
+        Xp = 1.0 / apply_pgen(pgen, X)
+        GX = np.repeat(Xp, ym, axis=0)
+        GY = np.tile(Yp, (xm, 1))
+        GX = np.sqrt(np.sum(prevf(GX), axis=1))
+        GY = np.sqrt(np.sum(prevf(GY), axis=1))
+        # Apply f2:
+        gamma = kwargs['gamma']
+        G = np.exp(gamma * (2.0 * G - GX - GY))
+    return G.reshape(xm, ym)

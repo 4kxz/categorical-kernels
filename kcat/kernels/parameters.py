@@ -54,4 +54,11 @@ PARAMS_K2 = {
     'param_grid': {
         'C': 10.0 ** np.arange(-1, 4),
     },
+    'functions': [
+        ('ident', 'ident'),
+        ('ident', 'f1'),
+        ('ident', 'f2'),
+        ('f1', 'ident'),
+    ],
+    'gammas': 2.0 ** np.arange(-3, 3),
 }  #: Default parameters for K2 kernel.
