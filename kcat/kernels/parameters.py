@@ -16,7 +16,7 @@ np.set_printoptions(precision=2, threshold=4, edgeitems=2)
 
 PARAMS_RBF = {
     'param_grid': {
-        'C': 10.0 ** np.arange(-1, 4),
+        'C': 10.0 ** np.arange(-1, 3),
         'gamma': 2.0 ** np.arange(-12, 1),
     },
 }  #: Default parameters for RBF kernel.
@@ -24,7 +24,7 @@ PARAMS_RBF = {
 
 PARAMS_K0 = {
     'param_grid': {
-        'C': 10.0 ** np.arange(-1, 4),
+        'C': 10.0 ** np.arange(-1, 3),
     },
     'functions': [
         ('ident', 'ident'),
@@ -37,7 +37,7 @@ PARAMS_K0 = {
 
 PARAMS_K1 = {
     'param_grid': {
-        'C': 10.0 ** np.arange(-1, 4),
+        'C': 10.0 ** np.arange(-1, 3),
     },
     'alphas': 1.5 ** np.arange(-4, 3),
     'functions': [
@@ -52,7 +52,7 @@ PARAMS_K1 = {
 
 PARAMS_K2 = {
     'param_grid': {
-        'C': 10.0 ** np.arange(-1, 4),
+        'C': 10.0 ** np.arange(-1, 3),
     },
     'functions': [
         ('ident', 'ident'),
@@ -60,5 +60,5 @@ PARAMS_K2 = {
         ('ident', 'f2'),
         ('f1', 'ident'),
     ],
-    'gammas': 2.0 ** np.arange(-3, 3),
+    'gammas': 2.0 ** np.arange(-3, 1),
 }  #: Default parameters for K2 kernel.

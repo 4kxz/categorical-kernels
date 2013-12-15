@@ -16,11 +16,14 @@ def get_pgen(X):
     """
     m, n = X.shape
     # defaultdict initialises entries to 0.
-    pmf = [collections.defaultdict(int) for _ in range(n)]
+    pmf = [collections.defaultdict(float) for _ in range(n)]
     for i in range(m):
         for j in range(n):
             c = X[i][j]
-            pmf[j][c] += 1.0 / m
+            pmf[j][c] += 1
+    for j in range(len(pmf)):
+        for i in pmf[j]:
+            pmf[j][i] /= m
     # `pmf` is a list of dict (array<map<symbol, real>>), using it in the
     # kernels would require to pass the indices all the way down to the
     # univarate kernel. Using a couple of lambdas it can be turned into a

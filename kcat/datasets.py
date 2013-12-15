@@ -124,7 +124,30 @@ def promoters():
             X.append([categories[i] for i in seq.strip()])
             y.append(cat == '+')
         X, y = np.array(X), np.array(y)
-        return X,  y
+        return X,  y, binary_encoder
+
+
+def splice():
+    """
+    Downloads the splice junction gene sequences dataset from the internet and
+    loads them into a data set.
+
+    :returns: - A matrix of size :math:`106 \\times 57` with the dataset.
+              - An array with the class of the `106` examples.
+    """
+    with urllib.request.urlopen(
+        'http://archive.ics.uci.edu/ml/machine-learning-databases/'
+        'molecular-biology/splice-junction-gene-sequences/splice.data'
+    ) as data:
+        categories = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'D': 4, 'N': 5, 'S': 6, 'R': 7}
+        classes = {'EI': 0, 'IE': 1, 'N': 2}
+        X, y = [], []
+        for line in data:
+            cat, _, seq = line.decode('ascii').split(',')
+            X.append([categories[i] for i in seq.strip()])
+            y.append(classes[cat])
+        X, y = np.array(X), np.array(y)
+        return X,  y, binary_encoder
 
 
 def soybean():
@@ -146,6 +169,8 @@ def soybean():
             y.append(seq[0])
             X.append([encode(x.strip()) for x in seq[1:]])
             train_size += 1
+            if train_size == 290:
+                break
     test_size = 0
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
@@ -156,6 +181,8 @@ def soybean():
             y.append(seq[0])
             X.append([encode(x.strip()) for x in seq[1:]])
             test_size += 1
+            if test_size == 340:
+                break
     X, y = np.array(X), np.array(y)
     return X, y, train_size, binary_encoder
 
