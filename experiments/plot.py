@@ -11,7 +11,6 @@ with open("results.json", "r") as f:
     for line in json.load(f):
         for i, k in enumerate(KERNELS):
             scores[i].append(line['kernels'][k]['score'])
-
     figure()
     boxplot(scores)
     xticks(range(1, 5), KERNELS)

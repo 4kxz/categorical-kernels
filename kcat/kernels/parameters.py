@@ -1,13 +1,11 @@
-"""
-This module defines a number of constants. They're parameter dictionaries with
-default values that can be directly passed to GridSearch, which in turn can be
-used to find the best values.
+"""This module defines a number of constants. They're parameter dictionaries
+with default values that can be directly passed to GridSearch, which in turn
+can be used to find the best values.
 
 The search space defined in the dictioanries should work reasonably well
 in most cases and avoids having to define a search dictionary every single
 time.
 """
-
 
 import numpy as np
 
@@ -62,3 +60,10 @@ PARAMS_K2 = {
     ],
     'gammas': 2.0 ** np.arange(-3, 1),
 }  #: Default parameters for K2 kernel.
+
+
+PARAMS_ELK = {
+    'param_grid': {
+        'C': 10.0 ** np.arange(0, 2),
+    },
+}  #: Default parameters for ELK kernel.

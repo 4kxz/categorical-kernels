@@ -4,8 +4,7 @@ import numpy as np
 
 
 def get_pgen(X):
-    """
-    Obtains a probability mass function generator from `X`.
+    """Obtains a probability mass function generator from `X`.
 
     :param X: Matrix where each row is an example and each column a categorical
         attribute.
@@ -32,8 +31,7 @@ def get_pgen(X):
     return lambda j: lambda c: pmf[j][c]
 
 def apply_pgen(pgen, X):
-    """
-    Applies `pgen` to each element in `X`.
+    """Applies `pgen` to each element in `X`.
 
     :param X: Matrix where each row is an example and each column a categorical
         attribute.

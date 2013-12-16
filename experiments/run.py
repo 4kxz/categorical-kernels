@@ -10,7 +10,7 @@ from kcat.datasets import gmonks, synthetic
 from kcat.kernels.train_test import (
     train_rbf, train_k0, train_k1, train_k2,
     test_rbf, test_k0, test_k1, test_k2,
-)
+    )
 from kcat.kernels.utils import get_pgen
 
 
@@ -20,15 +20,19 @@ if __name__ == '__main__':
     parser.add_argument(
         '-d', '--dataset',
         default='synthetic',
-    )
+        )
     parser.add_argument(
         '-m', '--size',
         default='300',
-    )
+        )
     parser.add_argument(
         '-i', '--iterations',
         default='1',
-    )
+        )
+    parser.add_argument(
+        '-p', '--param',
+        action='store_true',
+        )
     args = parser.parse_args()
     size = int(args.size)
     iterations = int(args.iterations)
@@ -49,7 +53,8 @@ if __name__ == '__main__':
             data_args = dict(m=size, d=1, random_state=nextid)
             X, y, bincoder = gmonks(**data_args)
         elif args.dataset == 'synthetic':
-            data_args = dict(m=size, n=25, c=4, p=0.5, random_state=nextid)
+            p = (nextid % 9 + 1) * 0.1 if args.param else 0.5
+            data_args = dict(m=size, n=25, c=4, p=p, random_state=nextid)
             X, y, bincoder = synthetic(**data_args)
         else:
             raise ValueError("Invalid dataset.")

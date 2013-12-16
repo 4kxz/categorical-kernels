@@ -7,7 +7,8 @@ from .misc import binary_encoder
 
 
 def synthetic(m, n=25, c=4, p=0.5, random_state=None):
-    """
+    """Generates a random data set.
+
     :param m: Number of examples to generate.
     :type m: int
     :param n: Number of attributes for each example.
@@ -69,7 +70,8 @@ def synthetic(m, n=25, c=4, p=0.5, random_state=None):
 
 
 def gmonks(m, d=2, random_state=None):
-    """
+    """Generates a random data set.
+
     :param m: Number of examples to generate.
     :param d: Number of blocks of features for each example.
 
@@ -105,13 +107,13 @@ def gmonks(m, d=2, random_state=None):
     return np.array(x), np.array(y), binary_encoder
 
 
-def promoters():
-    """
-    Downloads the promoter gene sequences dataset from the internet and loads
-    them into a data set.
+def promoter():
+    """Downloads the promoter gene sequences dataset and loads them into a data
+    set. `Source <http://archive.ics.uci.edu/ml/datasets/Molecular+Biology+%28\
+    Promoter+Gene+Sequences%29>`_.
 
     :returns: - A matrix of size :math:`106 \\times 57` with the dataset.
-              - An array with the class of the `106` examples.
+              - An array with the class of the 106 examples.
     """
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
@@ -128,12 +130,12 @@ def promoters():
 
 
 def splice():
-    """
-    Downloads the splice junction gene sequences dataset from the internet and
-    loads them into a data set.
+    """Downloads the splice junction gene sequences dataset and loads them into
+    a data set. `Source <http://archive.ics.uci.edu/ml/datasets/Molecular+Biol\
+    ogy+%28Splice-junction+Gene+Sequences%29>`_.
 
-    :returns: - A matrix of size :math:`106 \\times 57` with the dataset.
-              - An array with the class of the `106` examples.
+    :returns: - A matrix of size :math:`3190 \\times 60` with the dataset.
+              - An array with the class of the 3190 examples.
     """
     with urllib.request.urlopen(
         'http://archive.ics.uci.edu/ml/machine-learning-databases/'
@@ -151,11 +153,12 @@ def splice():
 
 
 def soybean():
-    """
-    Downloads the soybean dataset from the internet.
+    """Downloads the soybean dataset. Includes train and test.
+    The last four classes are ignored (see source for explanation). `Source <h\
+    ttp://archive.ics.uci.edu/ml/datasets/Soybean+%28Large%29>`_.
 
-    :returns: - A matrix of size :math:`? \\times ?` with the dataset.
-              - An array with the class of the `?` examples.
+    :returns: - A matrix of size :math:`630 \\times ?` with the dataset.
+              - An array with the class of the 630 examples.
     """
     X, y = [], []
     encode = lambda x: 0 if x == '?' else int(x) + 1
@@ -188,11 +191,11 @@ def soybean():
 
 
 def mushroom():
-    """
-    Downloads the mushroom dataset from the internet.
+    """Downloads the mushroom dataset. `Source <http://archive.ics.uci.edu/ml/\
+    datasets/Mushroom>`_.
 
-    :returns: - A matrix of size :math:`? \\times ?` with the dataset.
-              - An array with the class of the `?` examples.
+    :returns: - A matrix of size :math:`8124 \\times 22` with the dataset.
+              - An array with the class of the 8124 examples.
     """
     X, y = [], []
     with urllib.request.urlopen(

@@ -1,5 +1,4 @@
-"""
-This module contains methods to compute the gram matrix using the kernel
+"""This module contains methods to compute the gram matrix using the kernel
 functions *K0*, *K1* and *K2*. The gram matrix can be used to train SVMs using
 scikit-learn.
 
@@ -52,17 +51,14 @@ def get_vector_function(name, params={}):
         raise ValueError("Invalid function {}".format(name))
 
 
-#------------------------------------------------------------------------------
 # Categorical Kernel K0
-#------------------------------------------------------------------------------
 
 def k0_univ(x, y):
     """Univariate kernel *K0*."""
     return 0.0 if x != y else 1.0
 
 def k0_mult(u, v, prev):
-    """
-    Multivariate kernel *K0*.
+    """Multivariate kernel *K0*.
 
     :param u: Data vector.
     :param v: Data vector.
@@ -75,8 +71,7 @@ def k0_mult(u, v, prev):
     return np.mean([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
 
 def k0(X, Y, prev='ident', post='ident', **kwargs):
-    """
-    Computes the gram matrix.
+    """Computes the gram matrix.
 
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
@@ -100,8 +95,7 @@ def k0(X, Y, prev='ident', post='ident', **kwargs):
     return G
 
 def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
-    """
-    An optimised version of :meth:`k0` with the same interface.
+    """An optimised version of :meth:`k0` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
@@ -117,13 +111,11 @@ def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
     G = postf(np.mean(prevf(G), axis=1))
     return G.reshape(xm, ym)
 
-#------------------------------------------------------------------------------
+
 # Categorical Kernel K1
-#------------------------------------------------------------------------------
 
 def k1_univ(x, y, h, p):
-    """
-    Univariate kernel *K1*.
+    """Univariate kernel *K1*.
 
     :param x: Value.
     :param y: Value.
@@ -133,8 +125,7 @@ def k1_univ(x, y, h, p):
     return 0.0 if x != y else h(p(x))
 
 def k1_mult(u, v, h, pgen, prev):
-    """
-    Multivariate kernel *K1*.
+    """Multivariate kernel *K1*.
 
     :param u: Data vector.
     :param v: Data vector.
@@ -151,8 +142,7 @@ def k1_mult(u, v, h, pgen, prev):
     return r
 
 def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
-    """
-    Computes the gram matrix.
+    """Computes the gram matrix.
 
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
@@ -180,8 +170,7 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     return G
 
 def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
-    """
-    An optimised version of :meth:`k1` with the same interface.
+    """An optimised version of :meth:`k1` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
@@ -218,13 +207,11 @@ def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
         G = np.exp(gamma * (2.0 * G - GX - GY))
     return G.reshape(xm, ym)
 
-#------------------------------------------------------------------------------
+
 # Categorical Kernel K2
-#------------------------------------------------------------------------------
 
 def k2_univ(x, y, p, n):
-    """
-    Univariate kernel *K2*.
+    """Univariate kernel *K2*.
 
     :param x: Value.
     :param y: Value.
@@ -234,8 +221,7 @@ def k2_univ(x, y, p, n):
     return 0.0 if x != y else 1.0 / p(x)
 
 def k2_mult(u, v, pgen, n, prev):
-    """
-    Multivariate kernel *K2*.
+    """Multivariate kernel *K2*.
 
     :param u: Data vector.
     :param v: Data vector.
@@ -252,8 +238,7 @@ def k2_mult(u, v, pgen, n, prev):
     return r
 
 def k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
-    """
-    Computes the gram matrix.
+    """Computes the gram matrix.
 
     :param X: Data matrix where each row is an example and each column a
         categorical attribute.
@@ -279,8 +264,7 @@ def k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     return G
 
 def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
-    """
-    An optimised version of :meth:`k2` with the same interface.
+    """An optimised version of :meth:`k2` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
@@ -315,3 +299,17 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
         gamma = kwargs['gamma']
         G = np.exp(gamma * (2.0 * G - GX - GY))
     return G.reshape(xm, ym)
+
+
+# Expected Likelyhood Kernel
+
+def elk(X, Y, Xpgen, Ypgen):
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    # Compute the kernel matrix:
+    G = np.zeros((xm, ym))
+    for i, xi in enumerate(X):
+        for j, yj in enumerate(Y):
+            for k in range(xn):
+                G[i, j] += Xpgen(i)(yj[k]) + Ypgen(j)(xi[k])
+    return G

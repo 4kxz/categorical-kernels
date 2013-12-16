@@ -2,8 +2,7 @@ import numpy as np
 
 
 def binary_encoder(X):
-    """
-    Takes a matrix with a categorical variables and encodes them in dummy
+    """Takes a matrix with a categorical variables and encodes them in dummy
     variable form. Say, for three categories:
 
     * 0 → 1 0 0

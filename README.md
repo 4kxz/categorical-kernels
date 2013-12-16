@@ -15,3 +15,7 @@ Notebooks
 [Soybean test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Soybean.ipynb)
 
 [Mushroom test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Mushroom.ipynb)
+
+[Promoter test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Promoter.ipynb)
+
+[Splice test](http://nbviewer.ipython.org/github/Alkxzv/categorical-kernels/blob/master/notebooks/Splice.ipynb)
