@@ -9,11 +9,11 @@ of scikit-learn, and most parameters from GridSearchCV can be used.
 
 from sklearn.grid_search import GridSearchCV
 
-from .functions import fast_k0, fast_k1, fast_k2, elk
+from . import functions as fn
 
 
 class GridSearchK0:
-    """Find best parameters for *K0*.
+    """Finds best parameters for *K0*.
 
     :param functions: A list with the 'prev' and 'post' functions.
     :param gammas: A list of values.
@@ -35,7 +35,7 @@ class GridSearchK0:
             for g in self.gammas if uses_gammas else [None]:
                 result = GridSearchCV(self.clf, **self.params)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fast_k0(X, X, **params)
+                gram = fn.fast_k0(X, X, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_estimator_ = result.best_estimator_
@@ -44,7 +44,7 @@ class GridSearchK0:
 
 
 class GridSearchK1:
-    """Find best parameters for *K1*.
+    """Finds best parameters for *K1*.
 
     :param alphas: A list of values.
     :param functions: A list with the 'prev' and 'post' functions.
@@ -62,8 +62,9 @@ class GridSearchK1:
         self.best_score_ = 0
 
     def fit(self, X, y, pgen):
-        """Fit the model to the data matrix *X* and class vector *y*. *pgen* is
-        a probability distribution, see :meth:`~kcat.kernels.utils.get_pgen`.
+        """Fit the model to the data matrix *X* and class vector *y*.
+        *pgen* is a probability distribution, see
+        :meth:`~kcat.kernels.utils.get_pgen`.
         """
         for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post in ('f1', 'f2')
@@ -71,7 +72,7 @@ class GridSearchK1:
                 for a in self.alphas:
                     result = GridSearchCV(self.clf, **self.params)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fast_k1(X, X, pgen, **params)
+                    gram = fn.fast_k1(X, X, pgen, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_estimator_ = result.best_estimator_
@@ -80,7 +81,7 @@ class GridSearchK1:
 
 
 class GridSearchK2:
-    """Find best parameters for *K2*."""
+    """Finds best parameters for *K2*."""
 
     def __init__(self, clf, functions, gammas, **kwargs):
         self.clf = clf
@@ -92,15 +93,16 @@ class GridSearchK2:
         self.best_score_ = 0
 
     def fit(self, X, y, pgen):
-        """Fit the model to the data matrix *X* and class vector *y*. *pgen* is
-        a probability distribution, see :meth:`~kcat.kernels.utils.get_pgen`.
+        """Fit the model to the data matrix *X* and class vector *y*.
+        *pgen* is a probability distribution, see
+        :meth:`~kcat.kernels.utils.get_pgen`.
         """
         for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post in ('f1', 'f2')
             for g in self.gammas if uses_gammas else [None]:
                 result = GridSearchCV(self.clf, **self.params)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fast_k2(X, X, pgen, **params)
+                gram = fn.fast_k2(X, X, pgen, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_estimator_ = result.best_estimator_
@@ -108,8 +110,35 @@ class GridSearchK2:
                     self.best_score_ = result.best_score_
 
 
-class GridSearchELK:
-    """Find best parameters for *ELK*."""
+class GridSearchM0:
+    """Finds best parameters for *M0*."""
+
+    def __init__(self, clf, alphas, functions, gammas, **kwargs):
+        self.clf = clf
+        self.alphas = alphas
+        self.params = kwargs
+        self.best_estimator_ = None
+        self.best_params_ = None
+        self.best_score_ = 0
+
+    def fit(self, X, y, pgen):
+        """Fit the model to the data matrix *X* and class vector *y*.
+        *pgen* is a probability distribution, see
+        :meth:`~kcat.kernels.utils.get_pgen`.
+        """
+        for a in self.alphas:
+            result = GridSearchCV(self.clf, **self.params)
+            params = dict(alpha=a)
+            gram = fn.fast_k1(X, X, pgen, **params)
+            result.fit(gram, y)
+            if result.best_score_ >= self.best_score_:
+                self.best_estimator_ = result.best_estimator_
+                self.best_params_ = (result.best_params_, params)
+                self.best_score_ = result.best_score_
+
+
+class GridSearchM1:
+    """Finds best parameters for *M1*."""
 
     def __init__(self, clf, **kwargs):
         self.clf = clf
@@ -121,7 +150,27 @@ class GridSearchELK:
     def fit(self, X, y, Xpgen):
         """Fit the model to the data matrix *X* and class vector *y*."""
         result = GridSearchCV(self.clf, **self.params)
-        gram = elk(X, X, Xpgen, Xpgen)
+        gram = fn.fast_m1(X, X, Xpgen, Xpgen)
+        result.fit(gram, y)
+        self.best_estimator_ = result.best_estimator_
+        self.best_params_ = result.best_params_
+        self.best_score_ = result.best_score_
+
+
+class GridSearchELK:
+    """Finds best parameters for *ELK*."""
+
+    def __init__(self, clf, **kwargs):
+        self.clf = clf
+        self.params = kwargs
+        self.best_estimator_ = None
+        self.best_params_ = None
+        self.best_score_ = 0
+
+    def fit(self, X, y, Xpgen):
+        """Fit the model to the data matrix *X* and class vector *y*."""
+        result = GridSearchCV(self.clf, **self.params)
+        gram = fn.elk(X, X, Xpgen, Xpgen)
         result.fit(gram, y)
         self.best_estimator_ = result.best_estimator_
         self.best_params_ = result.best_params_

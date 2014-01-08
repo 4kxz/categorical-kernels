@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # Go!
     for i in range(iterations):
         # Load previous data:
-        with open("results.json", "r") as f:
+        with open("comparsion-results.json", "r") as f:
             data = json.load(f)
         # Get next id:
         lastid = -1
@@ -59,7 +59,6 @@ if __name__ == '__main__':
         else:
             raise ValueError("Invalid dataset.")
         # Save the args:
-        print(data_args)
         results['data_args'] = data_args
         # Split the data in train and test:
         split = cv.train_test_split(X, y, test_size=2/3, random_state=nextid)
@@ -99,5 +98,5 @@ if __name__ == '__main__':
         }
         # Save results:
         data.append(results)
-        with open("results.json", "w+") as f:
+        with open("comparison-results.json", "w+") as f:
             f.write(json.dumps(data))

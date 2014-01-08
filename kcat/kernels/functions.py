@@ -301,6 +301,40 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     return G.reshape(xm, ym)
 
 
+# Kernels
+
+def fast_m0(X, Y, pgen, alpha=1.0):
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(apply_pgen(pgen, X))
+    XL = np.repeat(X, ym, axis=0)
+    XP = np.repeat(Xp, ym, axis=0)
+    Yp = h(apply_pgen(pgen, Y))
+    YP = np.tile(Yp, (xm, 1))
+    YL = np.tile(Y, (xm, 1))
+    GX = (XL != YL) * XP
+    GY = (XL != YL) * YP
+    G = (XL == YL) * XP
+    G /= G + (GX + GY) / 2
+    G = np.sum(G, axis=1)
+    return G.reshape(xm, ym)
+
+def fast_m1(X, Y, pgen):
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = 1.0 - apply_pgen(pgen, X)
+    XL = np.repeat(X, ym, axis=0)
+    XP = np.repeat(Xp, ym, axis=0)
+    Yp = 1.0 - apply_pgen(pgen, Y)
+    YP = np.tile(Yp, (xm, 1))
+    YL = np.tile(Y, (xm, 1))
+    G = (XL == YL) * XP * 2
+    G /= XP + YP
+    G = np.sum(G, axis=1)
+    return G.reshape(xm, ym)
+
+
 # Expected Likelyhood Kernel
 
 def elk(X, Y, Xpgen, Ypgen):

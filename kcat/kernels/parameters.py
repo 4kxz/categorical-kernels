@@ -64,6 +64,19 @@ PARAMS_K2 = {
 
 PARAMS_ELK = {
     'param_grid': {
-        'C': 10.0 ** np.arange(0, 2),
+        'C': 10.0 ** np.arange(-1, 3),
     },
 }  #: Default parameters for ELK kernel.
+
+PARAMS_M0 = {
+    'param_grid': {
+        'C': 10.0 ** np.arange(-1, 3),
+    },
+    'alphas': 1.5 ** np.arange(-4, 3),
+}  #: Default parameters for M0 kernel.
+
+PARAMS_M1 = {
+    'param_grid': {
+        'C': 10.0 ** np.arange(-1, 3),
+    },
+}  #: Default parameters for M1 kernel.
