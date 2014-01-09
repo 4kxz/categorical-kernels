@@ -7,7 +7,7 @@ KERNELS = ('rbf', 'k0', 'k1', 'k2')
 COLORS = ('k', 'r', 'g', 'b')
 
 
-with open("comparsion-results.json", "r") as f:
+with open("comparison-results.json", "r") as f:
     # Collect data.
     scores = [[] for k in KERNELS]
     for line in json.load(f):
@@ -22,7 +22,7 @@ with open("comparsion-results.json", "r") as f:
     setp(bp['fliers'], color='black')
     setp(bp['medians'], color='black')
     xticks(range(1, 5), KERNELS)
-    savefig('comparsion-kernels.png')
+    savefig('comparison-kernels.png')
 
 
 with open("comparison-results.json", "r") as f:
@@ -51,7 +51,7 @@ with open("comparison-results.json", "r") as f:
         setp(bp['fliers'], color=COLORS[i], marker='x')
         setp(bp['medians'], color=COLORS[i])
         xticks(np.arange(1, 10), np.arange(1, 10) * 0.1)
-        savefig('comparsion-{}-parameter.png'.format(KERNELS[i]))
+        savefig('comparison-{}-parameter.png'.format(KERNELS[i]))
     # Box plot all kernels by parameter.
     figure()
     for i, k in enumerate(KERNELS):
@@ -65,4 +65,4 @@ with open("comparison-results.json", "r") as f:
              )
         xticks(np.arange(1, 10), np.arange(1, 10) * 0.1)
         ylim(0.25, 1)
-    savefig('comparsion-all-parameter.png')
+    savefig('comparison-all-parameter.png')

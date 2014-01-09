@@ -7,12 +7,13 @@ import time
 from sklearn import cross_validation as cv
 
 from kcat.datasets import gmonks, synthetic
-from kcat.kernels.train_test import (
-    train_rbf, train_k0, train_k1, train_k2,
-    test_rbf, test_k0, test_k1, test_k2,
-    )
+from kcat.kernels import train_test as tt
 from kcat.kernels.utils import get_pgen
 
+rbf = tt.TrainTestRBF()
+k0 = tt.TrainTestK0()
+k1 = tt.TrainTestK1()
+k2 = tt.TrainTestK2()
 
 if __name__ == '__main__':
     # Input handling:
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     # Go!
     for i in range(iterations):
         # Load previous data:
-        with open("comparsion-results.json", "r") as f:
+        with open("comparison-results.json", "r") as f:
             data = json.load(f)
         # Get next id:
         lastid = -1
@@ -69,33 +70,16 @@ if __name__ == '__main__':
         pgen = get_pgen(X_train)
         # Specify the cross-validation to use:
         cvf = cv.StratifiedKFold(y_train, 5)
-        # Train the classifiers:
-        print('Training rbf...')
-        rbf = train_rbf(Xb_train, y_train, cvf)
-        print('Training k0...')
-        k0 = train_k0(X_train, y_train, cvf)
-        print('Training k1...')
-        k1 = train_k1(X_train, y_train, pgen, cvf)
-        print('Training k2...')
-        k2 = train_k2(X_train, y_train, pgen, cvf)
         # Test preformance:
         results['kernels'] = {}
-        results['kernels']['rbf'] = {
-            'params': rbf.params,
-            'score': test_rbf(rbf.estimator, Xb_test, y_test),
-        }
-        results['kernels']['k0'] = {
-            'params': k0.params,
-            'score': test_k0(k0.estimator, X_train, X_test, y_test, k0.params[1]),
-        }
-        results['kernels']['k1'] = {
-            'params': k1.params,
-            'score': test_k1(k1.estimator, X_train, X_test, y_test, pgen, k1.params[1]),
-        }
-        results['kernels']['k2'] = {
-            'params': k1.params,
-            'score': test_k2(k2.estimator, X_train, X_test, y_test, pgen, k2.params[1]),
-        }
+        print('Training rbf...')
+        results['kernels']['rbf'] = rbf.train_test(cvf, Xb_train, y_train, Xb_test, y_test)
+        print('Training k0...')
+        results['kernels']['k0'] = k0.train_test(cvf, X_train, y_train, X_test, y_test)
+        print('Training k1...')
+        results['kernels']['k1'] = k1.train_test(cvf, X_train, y_train, X_test, y_test, pgen)
+        print('Training k2...')
+        results['kernels']['k2'] = k2.train_test(cvf, X_train, y_train, X_test, y_test, pgen)
         # Save results:
         data.append(results)
         with open("comparison-results.json", "w+") as f:
