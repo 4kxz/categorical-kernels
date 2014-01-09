@@ -77,9 +77,9 @@ if __name__ == '__main__':
         print('Training k0...')
         results['kernels']['k0'] = k0.train_test(cvf, X_train, y_train, X_test, y_test)
         print('Training k1...')
-        results['kernels']['k1'] = k1.train_test(cvf, X_train, y_train, X_test, y_test, pgen)
+        results['kernels']['k1'] = k1.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         print('Training k2...')
-        results['kernels']['k2'] = k2.train_test(cvf, X_train, y_train, X_test, y_test, pgen)
+        results['kernels']['k2'] = k2.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         # Save results:
         data.append(results)
         with open("comparison-results.json", "w+") as f:
