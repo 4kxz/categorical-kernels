@@ -10,7 +10,7 @@ COLORS = ('k', 'r', 'g', 'b')
 
 
 with open("comparison-results.json", "r") as f:
-    # Collect data.
+    # Flatten data before loading into pandas.
     items = []
     for raw in json.load(f):
         for k in raw['kernels']:
@@ -30,3 +30,4 @@ data = pd.DataFrame(items)
 plt.figure()
 data.groupby('kernel')['train_score', 'test_score'].mean().plot()
 plt.savefig('test.png')
+print(data.groupby(('kernel', 'p')).mean())

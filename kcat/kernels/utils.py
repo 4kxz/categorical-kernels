@@ -41,7 +41,8 @@ def apply_pgen(pgen, X):
     """
     m, n = X.shape
     P = np.zeros(X.shape)
+    p = 1.0 / (m + 1)
     for i in range(m):
         for j in range(n):
-            P[i][j] = pgen(j)(X[i][j])
+            P[i][j] = max(pgen(j)(X[i][j]), p)
     return P
