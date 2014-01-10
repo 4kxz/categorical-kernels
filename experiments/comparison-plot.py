@@ -13,7 +13,7 @@ with open("comparison-results.json", "r") as f:
     for line in json.load(f):
         for i, k in enumerate(KERNELS):
             if int(line['data_args']['p'] * 10) == 5:
-                scores[i].append(line['kernels'][k]['score'])
+                scores[i].append(line['kernels'][k]['test_score'])
     # Box plot grouped by kernel.
     figure()
     bp = boxplot(scores)
@@ -31,7 +31,7 @@ with open("comparison-results.json", "r") as f:
     for line in json.load(f):
         for i, k in enumerate(KERNELS):
             p = int(line['data_args']['p'] * 10) - 1
-            scores[i][p].append(line['kernels'][k]['score'])
+            scores[i][p].append(line['kernels'][k]['test_score'])
     # Box plot each kernel group by parameter.
     for i, k in enumerate(KERNELS):
         figure()
