@@ -35,10 +35,9 @@ if __name__ == '__main__':
         action='store_true',
         )
     args = parser.parse_args()
-    size = int(args.size)
-    iterations = int(args.iterations)
+    m = int(args.size)
     # Go!
-    for i in range(iterations):
+    for i in range(int(args.iterations)):
         # Load previous data:
         with open("comparison-results.json", "r") as f:
             data = json.load(f)
@@ -51,11 +50,11 @@ if __name__ == '__main__':
         print(results['timestamp'])
         # Generate new dataset:
         if args.dataset == 'gmonks':
-            data_args = dict(m=size, d=1, random_state=nextid)
+            data_args = dict(m=m, d=1, random_state=nextid)
             X, y, bincoder = gmonks(**data_args)
         elif args.dataset == 'synthetic':
             p = (nextid % 9 + 1) * 0.1 if args.param else 0.5
-            data_args = dict(m=size, n=25, c=4, p=p, random_state=nextid)
+            data_args = dict(m=m, n=25, c=4, p=p, random_state=nextid)
             X, y, bincoder = synthetic(**data_args)
         else:
             raise ValueError("Invalid dataset.")
