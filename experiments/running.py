@@ -28,8 +28,11 @@ class BatchRunner:
         dataset, data_args = self.generate_dataset(args=args)
         X, y, bincoder = dataset
         # Split the data in train and test:
-        X_train, X_test, y_train, y_test = \
-            cv.train_test_split(X, y, test_size=args.split, random_state=self.state)
+        X_train, X_test, y_train, y_test = cv.train_test_split(X, y,
+            train_size=args.train_size,
+            test_size=args.test_size,
+            random_state=self.state,
+            )
         # Compute other stuff needed for some kernels:
         Xb_train = bincoder(X_train)
         Xb_test = bincoder(X_test)
@@ -65,7 +68,7 @@ class SyntheticRunner(BatchRunner):
 
     def generate_dataset(self, args):
         data_args = {
-            'm': args.size,
+            'm': args.test_size + args.train_size,
             'n': args.attributes,
             'c': args.classes,
             'p': args.parameter,
@@ -93,7 +96,7 @@ class GmonksRunner(BatchRunner):
 
     def generate_dataset(self, args):
         data_args = {
-            'm': args.size,
+            'm': args.test_size + args.train_size,
             'n': args.attributes,
             'c': args.classes,
             'p': args.parameter,

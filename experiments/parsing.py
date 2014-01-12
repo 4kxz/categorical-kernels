@@ -6,23 +6,36 @@ class BaseParser(ArgumentParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_argument(
-            '-m', '--size',
-            default=300,
-            type=int,
+            'dataset',
+            metavar='DATASET',
+            type=str,
+            help='an integer for the accumulator',
             )
         self.add_argument(
-            '-s', '--split',
-            default=2/3,
-            type=float,
-            )
-        self.add_argument(
-            '-f', '--folds',
-            default=5,
-            type=int,
+            '-o', '--output',
+            default='results.json',
+            type=str,
+            help='where to save the output',
             )
         self.add_argument(
             '-i', '--iterations',
             default=1,
+            type=int,
+            help='number of repetitions',
+            )
+        self.add_argument(
+            '-r', '--train-size',
+            default=100,
+            type=int,
+            )
+        self.add_argument(
+            '-s', '--test-size',
+            default=200,
+            type=int,
+            )
+        self.add_argument(
+            '-f', '--folds',
+            default=5,
             type=int,
             )
 
