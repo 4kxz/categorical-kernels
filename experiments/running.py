@@ -98,9 +98,7 @@ class GmonksRunner(BatchRunner):
     def generate_dataset(self, args):
         data_args = {
             'm': args.test_size + args.train_size,
-            'n': args.attributes,
-            'c': args.classes,
-            'p': args.parameter,
+            'd': args.attributes,
             'random_state': self.state,
         }
-        return datasets.synthetic(**data_args), data_args
+        return datasets.gmonks(**data_args), data_args

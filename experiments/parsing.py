@@ -76,7 +76,7 @@ class GmonksParser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_argument(
-            '-n', '--attributes',
+            '-d', '--attributes',
             default=1,
             type=int,
             )
