@@ -24,12 +24,18 @@ class BaseParser(ArgumentParser):
             help='number of repetitions',
             )
         self.add_argument(
+            '-s', '--random_state',
+            default=0,
+            type=int,
+            help='number of repetitions',
+            )
+        self.add_argument(
             '-r', '--train-size',
             default=100,
             type=int,
             )
         self.add_argument(
-            '-s', '--test-size',
+            '-e', '--test-size',
             default=200,
             type=int,
             )

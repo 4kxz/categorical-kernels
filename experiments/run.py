@@ -10,14 +10,14 @@ if __name__ == '__main__':
         # Get the dataset name first
         dataset = parsing.BaseParser().parse_args().dataset.title()
         # The parser and runner are loaded by name
-        parser = getattr(parsing, dataset + 'Parser')()
-        runner = getattr(running, dataset + 'Runner')(0)
+        parser = getattr(parsing, dataset + 'Parser')
+        runner = getattr(running, dataset + 'Runner')
     except AttributeError:
         # This happens when the classes for are not implemented
         print("Invalid dataset {}".format(dataset))
     else:
         # Run and save results to file
-        args = parser.parse_args()
-        results = runner.run(args)
+        args = parser().parse_args()
+        results = runner(args.random_state).run(args)
         with open(args.output, "w+") as f:
             f.write(json.dumps(results))

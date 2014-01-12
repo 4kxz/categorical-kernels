@@ -53,6 +53,7 @@ class BatchRunner:
         self.state += 1
         return {
             'timestamp': time.asctime(),
+            'run_args': dict(args._get_kwargs()),
             'data_args': data_args,
             'kernels': kernels,
             }
