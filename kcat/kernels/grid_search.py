@@ -170,7 +170,7 @@ class GridSearchM1(CustomGridSearch):
 
     :param alpha: A list of values."""
 
-    def __init__(self, clf, alpha, **kwargs):
+    def __init__(self, alpha, **kwargs):
         self.alpha = alpha
         super().__init__(**kwargs)
 

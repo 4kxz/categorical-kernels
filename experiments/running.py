@@ -13,6 +13,7 @@ rbf = train_test.TrainTestRBF()
 k0 = train_test.TrainTestK0()
 k1 = train_test.TrainTestK1()
 k2 = train_test.TrainTestK2()
+m1 = train_test.TrainTestM1()
 
 
 class BaseRunner:
@@ -64,6 +65,9 @@ class BaseRunner:
         if args.verbose:
             print('Training k2...')
         kernels['k2'] = k2.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+        if args.verbose:
+            print('Training m1...')
+        kernels['m1'] = m1.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         # Update stuff and return results:
         self.state += 1
         self.results.append({
