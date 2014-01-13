@@ -36,8 +36,13 @@ with open(args.filename, "r") as f:
             item.update(raw['data_args'])
             items.append(item)
 
-data = pd.DataFrame(items)
+# Create dataframe and clean things up
+df = pd.DataFrame(items)
+df['p'] = df['p'].round(decimals=2)
 
-groups = ['kernel', 'p']
-columns = ['train_score', 'test_score']
-print(data.groupby(groups).mean()[columns])
+# Plot scores for each kernel
+by_kernel = df.groupby('kernel').groups
+for k in by_kernel:
+    fig = plt.figure()
+    df.loc[by_kernel[k], ['p', 'train_score', 'test_score']].boxplot(by='p')
+    plt.savefig('test{}.png'.format(k))
