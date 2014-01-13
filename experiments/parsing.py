@@ -9,13 +9,23 @@ class BaseParser(ArgumentParser):
             'dataset',
             metavar='DATASET',
             type=str,
-            help='an integer for the accumulator',
+            help='a valid dataset name',
+            )
+        self.add_argument(
+            '-v', '--verbose',
+            action='store_true',
+            help='show progress',
+            )
+        self.add_argument(
+            '-t', '--tmp',
+            action='store_true',
+            help='store partial results in temporary file',
             )
         self.add_argument(
             '-o', '--output',
             default='results.json',
             type=str,
-            help='where to save the output',
+            help='filename where the output should be saved',
             )
         self.add_argument(
             '-i', '--iterations',
@@ -24,10 +34,10 @@ class BaseParser(ArgumentParser):
             help='number of repetitions',
             )
         self.add_argument(
-            '-s', '--random_state',
+            '-s', '--random-state',
             default=0,
             type=int,
-            help='number of repetitions',
+            help='seed for the random state',
             )
         self.add_argument(
             '-r', '--train-size',
@@ -51,17 +61,17 @@ class SyntheticParser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_argument(
-            '-n', '--attributes',
+            '-n', '--n',
             default=25,
             type=int,
             )
         self.add_argument(
-            '-c', '--classes',
+            '-c', '--c',
             default=4,
             type=int,
             )
         self.add_argument(
-            '-p', '--parameter',
+            '-p', '--p',
             default=0.5,
             type=float,
             )
@@ -76,7 +86,7 @@ class GmonksParser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_argument(
-            '-d', '--attributes',
+            '-d', '--d',
             default=1,
             type=int,
             )
