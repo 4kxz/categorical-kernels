@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(
-    name='Categorical Kernels',
+    name='categorical-kernels',
     version='0.1.1',
     packages=find_packages(),
     description='Experiments with Categorical Kernels',

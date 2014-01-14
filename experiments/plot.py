@@ -22,21 +22,38 @@ parser.add_argument(
     'filename',
     metavar='FILENAME',
     type=str,
-    help='file to read',
+    help="json file containg execution data",
     )
 parser.add_argument(
     '-o', '--output',
     default='plot',
     type=str,
-    help='filename where the output should be saved',
+    help="directory or prefix used to save the images",
     )
 parser.add_argument(
-    '-s', '--synthetic',
-    action='store_true',
+    '-k', '--kernel',
+    default=None,
+    help="filter results and plot only those with a specific kernel",
     )
 parser.add_argument(
-    '-g', '--gmonks',
+    '-d', '--dataset',
+    default=None,
+    help="filter results and plot only those with a specific dataset",
+    )
+parser.add_argument(
+    '-g', '--group-by',
+    default='kernel',
+    help="plot results grouped by the passed attribute",
+    )
+parser.add_argument(
+    '--synthetic',
     action='store_true',
+    help="plot graphs for synthetic dataset",
+    )
+parser.add_argument(
+    '--gmonks',
+    action='store_true',
+    help="plot graphs for gmonks dataset",
     )
 
 args = parser.parse_args()
@@ -59,7 +76,19 @@ with open(args.filename, "r") as f:
 # Create dataframe and clean things up
 df = pd.DataFrame(items)
 
+# args.kernel filters a single kernel:
+if args.kernel is not None:
+    df = df[df.kernel == args.kernel]
+
+fig = plt.figure()
+df.loc[:, [args.group_by, 'train_error', 'test_error']].boxplot(by=args.group_by)
+plt.savefig('{}-train-test.png'.format(args.output))
+fig = plt.figure()
+df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
+plt.savefig('{}-count.png'.format(args.output))
+
 if args.synthetic:
+    df = df[df.dataset == 'synthetic']
     # Plot scores for each kernel grouped by p
     df['p'] = df['p'].round(decimals=2)
     by_kernel = df.groupby('kernel').groups
@@ -68,6 +97,5 @@ if args.synthetic:
         df.loc[by_kernel[k], ['p', 'train_error', 'test_error']].boxplot(by='p')
         plt.savefig('{}-p-error-{}.png'.format(args.output, k))
 
-fig = plt.figure()
-df.loc[:, ['kernel', 'train_error', 'test_error']].boxplot(by='kernel')
-plt.savefig('{}-train-test.png'.format(args.output))
+if args.gmonks:
+    pass
