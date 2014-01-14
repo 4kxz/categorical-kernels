@@ -6,7 +6,7 @@ from sklearn import cross_validation as cv
 
 from kcat import datasets
 from kcat.kernels import train_test
-from kcat.kernels.utils import get_pgen
+from kcat.kernels.pgen import get_pgen
 
 
 rbf = train_test.TrainTestRBF()

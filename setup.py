@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name='categorical-kernels',
-    version='0.1.2',
+    version='0.1.3',
     packages=find_packages(),
     description='Experiments with Categorical Kernels',
     long_description=open('README.md').read(),

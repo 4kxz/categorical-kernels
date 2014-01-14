@@ -131,7 +131,7 @@ def k1_mult(u, v, h, pgen, prev):
     :param v: Data vector.
     :param h: Inverting function.
     :param pgen: Probability mass function generator (see
-        :meth:`~kcat.kernels.utils.get_pgen`).
+        :meth:`~kcat.kernels.pgen.get_pgen`).
     :param prev: Function to transform the data before composing.
 
     :returns: Value of applying the kernel :meth:`k1_univ` between each pair of
@@ -148,7 +148,7 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
         categorical attribute.
     :param Y: Data matrix.
     :param pgen: Probability mass function generator (see
-        :meth:`~kcat.kernels.utils.get_pgen`).
+        :meth:`~kcat.kernels.pgen.get_pgen`).
     :param alpha: Parameter for the inverting function *h*.
     :param prev: Function to transform the data before composing. Accepts
         ``'ident'``, ``'f1'`` or a Python function.
@@ -226,7 +226,7 @@ def k2_mult(u, v, pgen, n, prev):
     :param u: Data vector.
     :param v: Data vector.
     :param pgen: Probability mass function generator (see
-        :meth:`~kcat.kernels.utils.get_pgen`).
+        :meth:`~kcat.kernels.pgen.get_pgen`).
     :param n: Number of elements.
     :param prev: Function to transform the data before composing.
 
@@ -244,7 +244,7 @@ def k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
         categorical attribute.
     :param Y: Data matrix.
     :param pgen: Probability mass function generator (see
-        :meth:`~kcat.kernels.utils.get_pgen`).
+        :meth:`~kcat.kernels.pgen.get_pgen`).
     :param prev: Function to transform the data before composing. Accepts
         ``'ident'``, ``'f1'`` or a Python function.
     :param post: Function to transform the data after composing. Accepts

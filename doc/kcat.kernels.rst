@@ -7,7 +7,7 @@ The core of the package is in the :mod:`kcat.kernels.functions` module
 which contains the kernel functions.
 
 The :mod:`kcat.kernels.grid_search`, :mod:`kcat.kernels.train_test`, and
-:mod:`kcat.kernels.utils` modules contain additional code to use the
+:mod:`kcat.kernels.pgen` modules contain additional code to use the
 kernels with the scikit-learn environment and run tests.
 
 kcat.kernels.functions module
@@ -32,8 +32,8 @@ kcat.kernels.train_test module
     :undoc-members:
 
 
-kcat.kernels.utils module
+kcat.kernels.pgen module
 -------------------------------
 
-.. automodule:: kcat.kernels.utils
+.. automodule:: kcat.kernels.pgen
     :members:

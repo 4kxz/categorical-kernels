@@ -3,7 +3,7 @@ import urllib.request
 import numpy as np
 from numpy import random
 
-from .misc import binary_encoder
+from .utils import binary_encoder
 
 
 def synthetic(m, n=25, c=4, p=0.5, random_state=None):

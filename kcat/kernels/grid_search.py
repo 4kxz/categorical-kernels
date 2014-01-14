@@ -111,7 +111,7 @@ class GridSearchK1(CustomGridSearch):
 
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.utils.get_pgen`.
+        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
         """
         self.X = X
         # Only 'f1' and 'f2' use gammas, no need to search all the
@@ -146,7 +146,7 @@ class GridSearchK2(CustomGridSearch):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.utils.get_pgen`.
+        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
         """
         self.X = X
         # Only 'f1' and 'f2' use gammas, no need to search all the
@@ -178,7 +178,7 @@ class GridSearchM1(CustomGridSearch):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.utils.get_pgen`.
+        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
         """
         self.X = X
         for a in self.alpha:
