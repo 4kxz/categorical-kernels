@@ -311,11 +311,10 @@ def fast_m1(X, Y, pgen, alpha):
     XL = np.repeat(X, ym, axis=0)
     XP = np.repeat(Xp, ym, axis=0)
     Yp = h(apply_pgen(pgen, Y))
-    YP = np.tile(Yp, (xm, 1))
     YL = np.tile(Y, (xm, 1))
+    YP = np.tile(Yp, (xm, 1))
     G = (XL == YL) * XP * 2
-    G /= XP + YP
-    G = np.sum(G, axis=1)
+    G = np.sum(G, axis=1) / np.sum(XP + YP, axis=1)
     return G.reshape(xm, ym)
 
 

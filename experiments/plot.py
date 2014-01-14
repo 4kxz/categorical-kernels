@@ -13,10 +13,6 @@ try:
 except:
     pass
 
-KERNELS = ('rbf', 'k0', 'k1', 'k2')
-COLORS = ('k', 'r', 'g', 'b')
-
-
 parser = ArgumentParser()
 parser.add_argument(
     'filename',
@@ -84,6 +80,7 @@ if args.dataset is not None:
 
 fig = plt.figure()
 df.loc[:, [args.group_by, 'train_error', 'test_error']].boxplot(by=args.group_by)
+plt.ylim(0, 1)
 plt.savefig('{}-train-test.png'.format(args.output))
 fig = plt.figure()
 df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
@@ -97,6 +94,7 @@ if args.synthetic:
     for k in by_kernel:
         fig = plt.figure()
         df.loc[by_kernel[k], ['p', 'train_error', 'test_error']].boxplot(by='p')
+        plt.ylim(0, 1)
         plt.savefig('{}-p-error-{}.png'.format(args.output, k))
 
 if args.gmonks:
