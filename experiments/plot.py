@@ -76,9 +76,11 @@ with open(args.filename, "r") as f:
 # Create dataframe and clean things up
 df = pd.DataFrame(items)
 
-# args.kernel filters a single kernel:
+# Basic filters:
 if args.kernel is not None:
     df = df[df.kernel == args.kernel]
+if args.dataset is not None:
+    df = df[df.dataset == args.dataset]
 
 fig = plt.figure()
 df.loc[:, [args.group_by, 'train_error', 'test_error']].boxplot(by=args.group_by)
