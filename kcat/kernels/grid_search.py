@@ -15,7 +15,7 @@ from sklearn.grid_search import GridSearchCV
 from . import functions as fn
 
 
-class CustomGridSearch:
+class GridSearchWrapper:
     """Base class to extend in custom grid searches.
 
     Kernel specific keyword arguments (*alpha*, *prev*, *post*, etc.)
@@ -61,7 +61,7 @@ class CustomGridSearch:
         return details
 
 
-class GridSearchK0(CustomGridSearch):
+class GridSearchK0(GridSearchWrapper):
     """Finds the best parameters for *K0*.
 
     :param functions: A list with the 'prev' and 'post' functions.
@@ -92,7 +92,7 @@ class GridSearchK0(CustomGridSearch):
                     self.best_estimator_ = result.best_estimator_
 
 
-class GridSearchK1(CustomGridSearch):
+class GridSearchK1(GridSearchWrapper):
     """Finds the best parameters for *K1*.
 
     :param alpha: A list of values.
@@ -111,7 +111,7 @@ class GridSearchK1(CustomGridSearch):
 
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
+        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
         # Only 'f1' and 'f2' use gammas, no need to search all the
@@ -131,7 +131,7 @@ class GridSearchK1(CustomGridSearch):
                         self.best_estimator_ = result.best_estimator_
 
 
-class GridSearchK2(CustomGridSearch):
+class GridSearchK2(GridSearchWrapper):
     """Finds the best parameters for *K2*.
 
     :param functions: A list with the 'prev' and 'post' functions.
@@ -146,7 +146,7 @@ class GridSearchK2(CustomGridSearch):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
+        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
         # Only 'f1' and 'f2' use gammas, no need to search all the
@@ -165,7 +165,7 @@ class GridSearchK2(CustomGridSearch):
                     self.best_estimator_ = result.best_estimator_
 
 
-class GridSearchM1(CustomGridSearch):
+class GridSearchM1(GridSearchWrapper):
     """Finds the best parameters for *M1*.
 
     :param alpha: A list of values."""
@@ -178,7 +178,7 @@ class GridSearchM1(CustomGridSearch):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 
-        About *pgen*, see :meth:`~kcat.kernels.pgen.get_pgen`.
+        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
         for a in self.alpha:
@@ -193,7 +193,7 @@ class GridSearchM1(CustomGridSearch):
                 self.best_estimator_ = result.best_estimator_
 
 
-class GridSearchELK(CustomGridSearch):
+class GridSearchELK(GridSearchWrapper):
     """Finds the best parameters for *ELK*."""
 
     def fit(self, X, y, Xpgen):

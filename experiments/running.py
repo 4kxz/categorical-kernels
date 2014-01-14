@@ -5,15 +5,8 @@ import numpy as np
 from sklearn import cross_validation as cv
 
 from kcat import datasets
-from kcat.kernels import train_test
-from kcat.kernels.pgen import get_pgen
-
-
-rbf = train_test.TrainTestRBF()
-k0 = train_test.TrainTestK0()
-k1 = train_test.TrainTestK1()
-k2 = train_test.TrainTestK2()
-m1 = train_test.TrainTestM1()
+from kcat.kernels import models
+from kcat.utils import get_pgen
 
 
 class BaseRunner:
@@ -54,20 +47,20 @@ class BaseRunner:
         # Test preformance with every kernel:
         kernels = {}
         if args.verbose:
-            print('Training rbf...')
-        kernels['rbf'] = rbf.train_test(cvf, Xb_train, y_train, Xb_test, y_test)
+            print('Running rbf...')
+        kernels['rbf'] = models.RBF.evaluate(cvf, Xb_train, y_train, Xb_test, y_test)
         if args.verbose:
-            print('Training k0...')
-        kernels['k0'] = k0.train_test(cvf, X_train, y_train, X_test, y_test)
+            print('Running k0...')
+        kernels['k0'] = models.K0.evaluate(cvf, X_train, y_train, X_test, y_test)
         if args.verbose:
-            print('Training k1...')
-        kernels['k1'] = k1.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+            print('Running k1...')
+        kernels['k1'] = models.K1.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         if args.verbose:
-            print('Training k2...')
-        kernels['k2'] = k2.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+            print('Running k2...')
+        kernels['k2'] = models.K2.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         if args.verbose:
-            print('Training m1...')
-        kernels['m1'] = m1.train_test(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+            print('Running m1...')
+        kernels['m1'] = models.M1.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
         # Update stuff and return results:
         self.state += 1
         self.results.append({
