@@ -303,7 +303,7 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
 
 # Kernels
 
-def fast_m1(X, Y, pgen, alpha):
+def fast_m1(X, Y, pgen, alpha=1.0):
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     xm, xn = X.shape
     ym, yn = Y.shape
@@ -313,8 +313,8 @@ def fast_m1(X, Y, pgen, alpha):
     Yp = h(apply_pgen(pgen, Y))
     YL = np.tile(Y, (xm, 1))
     YP = np.tile(Yp, (xm, 1))
-    G = (XL == YL) * XP * 2
-    G = np.sum(G, axis=1) / np.sum(XP + YP, axis=1)
+    G = (XL == YL) * XP
+    G = np.sum(G, axis=1) * 2 / np.sum(XP + YP, axis=1)
     return G.reshape(xm, ym)
 
 

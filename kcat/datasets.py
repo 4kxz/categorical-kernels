@@ -187,7 +187,7 @@ def soybean():
             if test_size == 340:
                 break
     X, y = np.array(X), np.array(y)
-    return X, y, train_size, binary_encoder
+    return X, y, binary_encoder
 
 
 def mushroom():
