@@ -196,11 +196,11 @@ class GridSearchM1(GridSearchWrapper):
 class GridSearchELK(GridSearchWrapper):
     """Finds the best parameters for *ELK*."""
 
-    def fit(self, X, y, Xpgen):
+    def fit(self, X, y):
         """Fit the model to the data matrix *X* and class vector *y*."""
         self.X = X
         result = GridSearchCV(**self.gskwargs)
-        gram = fn.elk(X, X, Xpgen, Xpgen)
+        gram = fn.elk(X, X)
         result.fit(gram, y)
         self.best_params_ = result.best_params_
         self.best_score_ = result.best_score_

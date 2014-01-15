@@ -16,6 +16,7 @@ from sklearn import svm
 
 from . import functions as fn
 from . import grid_search as gs
+from ..utils import get_pgen
 
 np.set_printoptions(precision=2, threshold=4, edgeitems=2)
 
@@ -48,7 +49,7 @@ class Model:
         return results
 
     @classmethod
-    def evaluate(cls, cv, X_train, y_train, X_test, y_test, **kwargs):
+    def evaluate(cls, cv, X_train, X_test, y_train, y_test, **kwargs):
         search = cls.train(cv=cv, X=X_train, y=y_train, **kwargs)
         return cls.test(search=search, X=X_test, y=y_test, **kwargs)
 

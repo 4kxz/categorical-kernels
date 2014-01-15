@@ -48,19 +48,22 @@ class BaseRunner:
         kernels = {}
         if args.verbose:
             print('Running rbf...')
-        kernels['rbf'] = models.RBF.evaluate(cvf, Xb_train, y_train, Xb_test, y_test)
+        kernels['rbf'] = models.RBF.evaluate(cvf, Xb_train, Xb_test, y_train, y_test)
         if args.verbose:
             print('Running k0...')
-        kernels['k0'] = models.K0.evaluate(cvf, X_train, y_train, X_test, y_test)
+        kernels['k0'] = models.K0.evaluate(cvf, X_train, X_test, y_train, y_test)
         if args.verbose:
             print('Running k1...')
-        kernels['k1'] = models.K1.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+        kernels['k1'] = models.K1.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
         if args.verbose:
             print('Running k2...')
-        kernels['k2'] = models.K2.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+        kernels['k2'] = models.K2.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
         if args.verbose:
             print('Running m1...')
-        kernels['m1'] = models.M1.evaluate(cvf, X_train, y_train, X_test, y_test, pgen=pgen)
+        kernels['m1'] = models.M1.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
+        if args.verbose:
+            print('Running elk...')
+        kernels['elk'] = models.ELK.evaluate(cvf, X_train, X_test, y_train, y_test)
         # Update stuff and return results:
         self.state += 1
         self.results.append({
@@ -101,7 +104,7 @@ class SyntheticRunner(BaseRunner):
 
     def run(self, args):
         if args.p_range:
-            for p in np.arange(0.2, 0.9, 0.1):
+            for p in np.arange(0.1, 1.0, 0.1):
                 args.p = p;
                 super()._batch_run(args)
         else:

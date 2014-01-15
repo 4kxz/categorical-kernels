@@ -10,7 +10,7 @@ Python functions as parameters.
 
 import numpy as np
 
-from ..utils import apply_pgen
+from ..utils import get_pgen, apply_pgen
 
 
 # Some of the categorical kernels can receive Python functions as parameters.
@@ -301,7 +301,7 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     return G.reshape(xm, ym)
 
 
-# Kernels
+# Multivariate
 
 def fast_m1(X, Y, pgen, alpha=1.0):
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
@@ -320,10 +320,12 @@ def fast_m1(X, Y, pgen, alpha=1.0):
 
 # Expected Likelyhood Kernel
 
-def elk(X, Y, Xpgen, Ypgen):
+def elk(X, Y):
     xm, xn = X.shape
     ym, yn = Y.shape
     # Compute the kernel matrix:
+    Xpgen = get_pgen(X.T)
+    Ypgen = get_pgen(Y.T)
     G = np.zeros((xm, ym))
     for i, xi in enumerate(X):
         for j, yj in enumerate(Y):
