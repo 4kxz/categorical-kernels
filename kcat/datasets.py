@@ -191,8 +191,8 @@ def soybean():
 
 
 def mushroom():
-    """Downloads the mushroom dataset. `Source <http://archive.ics.uci.edu/ml/\
-    datasets/Mushroom>`_.
+    """Downloads the mushroom dataset.
+    `Source <http://archive.ics.uci.edu/ml/datasets/Mushroom>`_.
 
     :returns: - A matrix of size :math:`8124 \\times 22` with the dataset.
               - An array with the class of the 8124 examples.
@@ -208,3 +208,42 @@ def mushroom():
             X.append([ord(x.strip()) for x in seq[1:]])
     X, y = np.array(X), np.array(y)
     return X, y, binary_encoder
+
+
+def webkb():
+    """Downloads the webkb dataset.
+    `Source <http://web.ist.utl.pt/~acardoso/datasets/>`_.
+    """
+    X, y, ref, index = [], [], [], {}
+    with urllib.request.urlopen(
+        'http://localhost:8000/kcat/data/webkb-stemmed.txt'
+    ) as data:
+        for line in data:
+            seq = line.decode('ascii').replace('\n', '').split(' ')
+            label, row = seq[0], seq[1:]
+            if len(row) != 0:
+                y.append(label)
+                X.append(row)
+                for word in row:
+                    if word not in index:
+                        index[word] = len(ref)
+                        ref.append(word)
+            if len(X) > 250:
+                break
+    # Create empty count matrix with as many columns as words and fill it
+    C = np.zeros((len(X), len(ref)))
+    for i in range(len(X)):
+        for word in X[i]:
+            C[i][index[word]] += 1
+    print(ref)
+    # Transform frequency to inverse by row
+    C /= C.sum(axis=1, keepdims=True)
+    X, y = np.array(C), np.array(y)
+    return X, y, binary_encoder
+
+
+def webkb_cat():
+    X, y, encoder = webkb()
+    categorize = lambda x: 0 if x < 0.0001 else 1 if x < 0.001 else 2 if x < 0.01 else 3 if x < 0.1 else 4
+    X = np.vectorize(categorize)(X)
+    return X, y, encoder
