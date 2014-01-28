@@ -90,3 +90,7 @@ class GmonksParser(BaseParser):
             default=1,
             type=int,
             )
+
+
+class WebkbParser(BaseParser):
+    pass

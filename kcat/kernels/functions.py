@@ -324,11 +324,8 @@ def elk(X, Y):
     xm, xn = X.shape
     ym, yn = Y.shape
     # Compute the kernel matrix:
-    Xpgen = get_pgen(X.T)
-    Ypgen = get_pgen(Y.T)
-    G = np.zeros((xm, ym))
-    for i, xi in enumerate(X):
-        for j, yj in enumerate(Y):
-            for k in range(xn):
-                G[i, j] += Xpgen(i)(yj[k]) + Ypgen(j)(xi[k])
-    return G
+    X = np.repeat(X, ym, axis=0)
+    X *= np.tile(Y, (xm, 1))
+    X = np.sqrt(X)
+    X = np.sum(X, axis=1)
+    return X.reshape(xm, ym)

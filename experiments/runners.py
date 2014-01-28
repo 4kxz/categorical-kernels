@@ -48,22 +48,28 @@ class BaseRunner:
         kernels = {}
         if args.verbose:
             print('Running rbf...')
-        kernels['rbf'] = models.RBF.evaluate(cvf, Xb_train, Xb_test, y_train, y_test)
+        kernels['rbf'] = models.RBF.evaluate(
+            cvf, Xb_train, Xb_test, y_train, y_test)
         if args.verbose:
             print('Running k0...')
-        kernels['k0'] = models.K0.evaluate(cvf, X_train, X_test, y_train, y_test)
+        kernels['k0'] = models.K0.evaluate(
+            cvf, X_train, X_test, y_train, y_test)
         if args.verbose:
             print('Running k1...')
-        kernels['k1'] = models.K1.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
+        kernels['k1'] = models.K1.evaluate(
+            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
         if args.verbose:
             print('Running k2...')
-        kernels['k2'] = models.K2.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
+        kernels['k2'] = models.K2.evaluate(
+            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
         if args.verbose:
             print('Running m1...')
-        kernels['m1'] = models.M1.evaluate(cvf, X_train, X_test, y_train, y_test, pgen=pgen)
+        kernels['m1'] = models.M1.evaluate(
+            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
         if args.verbose:
             print('Running elk...')
-        kernels['elk'] = models.ELK.evaluate(cvf, X_train, X_test, y_train, y_test)
+        kernels['elk'] = models.ELK.evaluate(
+            cvf, X_train, X_test, y_train, y_test)
         # Update stuff and return results:
         self.state += 1
         self.results.append({
@@ -121,3 +127,68 @@ class GmonksRunner(BaseRunner):
             'random_state': self.state,
         }
         return datasets.gmonks(**data_args), data_args
+
+
+class WebkbRunner(BaseRunner):
+
+    def _single_run(self, args):
+        """Generate a dataset an train/test all the kernels on it."""
+        if args.verbose:
+            print("#{} {}".format(self.state, time.asctime()))
+        # Use the appropiate dataset:
+        dataset, data_args = self._generate_dataset(args=args)
+        X, y, categorize = dataset
+        # Split the data in train and test:
+        print(X.shape, y.shape)
+        X_train, X_test, y_train, y_test = cv.train_test_split(X, y,
+            train_size=args.train_size,
+            test_size=args.test_size,
+            random_state=self.state,
+            )
+        # Compute other stuff needed for some kernels:
+        Xcat_train = categorize(X_train)
+        Xcat_test = categorize(X_test)
+        pgen = get_pgen(X_train)
+        # Specify the cross-validation to use:
+        cvf = cv.StratifiedKFold(y_train, args.folds)
+        # Test preformance with every kernel:
+        kernels = {}
+        if args.verbose:
+            print('Running rbf...')
+        kernels['rbf'] = models.RBF.evaluate(
+            cvf, X_train, X_test, y_train, y_test)
+        if args.verbose:
+            print('Running k0...')
+        kernels['k0'] = models.K0.evaluate(
+            cvf, Xcat_train, Xcat_test, y_train, y_test)
+        if args.verbose:
+            print('Running k1...')
+        kernels['k1'] = models.K1.evaluate(
+            cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
+        if args.verbose:
+            print('Running k2...')
+        kernels['k2'] = models.K2.evaluate(
+            cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
+        if args.verbose:
+            print('Running m1...')
+        kernels['m1'] = models.M1.evaluate(
+            cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
+        if args.verbose:
+            print('Running elk...')
+        kernels['elk'] = models.ELK.evaluate(
+            cvf, X_train, X_test, y_train, y_test)
+        # Update stuff and return results:
+        self.state += 1
+        self.results.append({
+            'timestamp': time.asctime(),
+            'run_args': dict(args._get_kwargs()),
+            'data_args': data_args,
+            'kernels': kernels,
+            })
+        # Save partial results when specified:
+        if args.tmp:
+            self.save("{}~".format(args.output))
+
+
+    def _generate_dataset(self, args):
+        return datasets.webkb(), {}

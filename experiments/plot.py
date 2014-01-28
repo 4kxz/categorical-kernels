@@ -69,19 +69,23 @@ with open(args.filename, "r") as f:
             item.update(raw['data_args'])
             items.append(item)
 
-# Create dataframe and clean things up
+# Create dataframe and clean things up.
 df = pd.DataFrame(items)
 
-# Basic filters:
+# Basic filters.
 if args.kernel is not None:
     df = df[df.kernel == args.kernel]
 if args.dataset is not None:
     df = df[df.dataset == args.dataset]
 
+# Plot train and test error.
 fig = plt.figure()
-df.loc[:, [args.group_by, 'train_error', 'test_error']].boxplot(by=args.group_by)
+groups = [args.group_by, 'train_error', 'test_error']
+df.loc[:, groups].boxplot(by=args.group_by)
 plt.ylim(0, 1)
 plt.savefig('{}-train-test.png'.format(args.output))
+
+# Print count for each group.
 fig = plt.figure()
 df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
 plt.savefig('{}-count.png'.format(args.output))
@@ -93,7 +97,8 @@ if args.synthetic:
     by_kernel = df.groupby('kernel').groups
     for k in by_kernel:
         fig = plt.figure()
-        df.loc[by_kernel[k], ['p', 'train_error', 'test_error']].boxplot(by='p')
+        groups = ['p', 'train_error', 'test_error']
+        df.loc[by_kernel[k], groups].boxplot(by='p')
         plt.ylim(0, 1)
         plt.savefig('{}-p-error-{}.png'.format(args.output, k))
 

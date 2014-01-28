@@ -2,16 +2,16 @@
 
 import sys
 
-import parsing
-import running
+import parsers
+import runners
 
 if __name__ == '__main__':
     try:
         # Get the dataset name first
         dataset = sys.argv[1].title()
         # The parser and runner are loaded by name
-        parser_class = getattr(parsing, dataset + 'Parser')
-        runner_class = getattr(running, dataset + 'Runner')
+        parser_class = getattr(parsers, dataset + 'Parser')
+        runner_class = getattr(runners, dataset + 'Runner')
     except AttributeError:
         # This happens when the classes for are not implemented
         print("Invalid dataset {}".format(dataset))
