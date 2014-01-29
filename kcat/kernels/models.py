@@ -49,12 +49,15 @@ class Model:
         return results
 
     @classmethod
-    def evaluate(cls, cv, X_train, X_test, y_train, y_test, **kwargs):
-        search = cls.train(cv=cv, X=X_train, y=y_train, **kwargs)
-        return cls.test(search=search, X=X_test, y=y_test, **kwargs)
+    def evaluate(cls, cv, X, y, **kwargs):
+        X_train, X_test = X
+        y_train, y_test = y
+        search = cls.train(cv=cv, X=X_train[cls.data], y=y_train, **kwargs)
+        return cls.test(search=search, X=X_test[cls.data], y=y_test, **kwargs)
 
 
 class RBF(Model):
+    data = 'quantitative'
     svc = 'rbf'
     kernel = None
     search_class = gs.GridSearchWrapper
@@ -65,6 +68,7 @@ class RBF(Model):
 
 
 class K0(Model):
+    data = 'categorical'
     svc = 'precomputed'
     kernel = fn.fast_k0
     search_class = gs.GridSearchK0
@@ -80,6 +84,7 @@ class K0(Model):
 
 
 class K1(Model):
+    data = 'categorical'
     svc = 'precomputed'
     kernel = fn.fast_k1
     search_class = gs.GridSearchK1
@@ -97,6 +102,7 @@ class K1(Model):
 
 
 class K2(Model):
+    data = 'categorical'
     svc = 'precomputed'
     kernel = fn.fast_k2
     search_class = gs.GridSearchK2
@@ -113,6 +119,7 @@ class K2(Model):
 
 
 class M1(Model):
+    data = 'categorical'
     svc = 'precomputed'
     kernel = fn.fast_m1
     search_class = gs.GridSearchM1
@@ -123,6 +130,7 @@ class M1(Model):
 
 
 class ELK(Model):
+    data = 'quantitative'
     svc = 'precomputed'
     kernel = fn.elk
     search_class = gs.GridSearchELK

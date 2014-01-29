@@ -4,8 +4,8 @@ import time
 import numpy as np
 from sklearn import cross_validation as cv
 
-from kcat import datasets
-from kcat.kernels import models
+from kcat import datasets as ds
+from kcat.kernels import models as md
 from kcat.utils import get_pgen
 
 
@@ -21,9 +21,17 @@ class BaseRunner:
         self.state = state
         self.results = []
 
-    def _generate_dataset(self, args):
-        """Returns a new dataset. To be overwritten by subclasses."""
-        raise NotImplementedError
+    def save(self, filename):
+        with open(filename, "w+") as f:
+            f.write(json.dumps(self.results))
+
+    def run(self, args):
+        self._batch_run(args)
+
+    def _batch_run(self, args):
+        """Generate datasets and train/test repeatedly."""
+        for i in range(args.iterations):
+            self._single_run(args)
 
     def _single_run(self, args):
         """Generate a dataset an train/test all the kernels on it."""
@@ -46,30 +54,10 @@ class BaseRunner:
         cvf = cv.StratifiedKFold(y_train, args.folds)
         # Test preformance with every kernel:
         kernels = {}
-        if args.verbose:
-            print('Running rbf...')
-        kernels['rbf'] = models.RBF.evaluate(
-            cvf, Xb_train, Xb_test, y_train, y_test)
-        if args.verbose:
-            print('Running k0...')
-        kernels['k0'] = models.K0.evaluate(
-            cvf, X_train, X_test, y_train, y_test)
-        if args.verbose:
-            print('Running k1...')
-        kernels['k1'] = models.K1.evaluate(
-            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
-        if args.verbose:
-            print('Running k2...')
-        kernels['k2'] = models.K2.evaluate(
-            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
-        if args.verbose:
-            print('Running m1...')
-        kernels['m1'] = models.M1.evaluate(
-            cvf, X_train, X_test, y_train, y_test, pgen=pgen)
-        if args.verbose:
-            print('Running elk...')
-        kernels['elk'] = models.ELK.evaluate(
-            cvf, X_train, X_test, y_train, y_test)
+        for k in KERNELS:
+            if args.verbose:
+                print('Running {}...'.format(k))
+            kernels[k] = getattr(self, '_' + k)(arguments)
         # Update stuff and return results:
         self.state += 1
         self.results.append({
@@ -82,17 +70,9 @@ class BaseRunner:
         if args.tmp:
             self.save("{}~".format(args.output))
 
-    def _batch_run(self, args):
-        """Generate datasets and train/test repeatedly."""
-        for i in range(args.iterations):
-            self._single_run(args)
-
-    def run(self, args):
-        self._batch_run(args)
-
-    def save(self, filename):
-        with open(filename, "w+") as f:
-            f.write(json.dumps(self.results))
+    def _generate_dataset(self, args):
+        """Returns a new dataset. To be overwritten by subclasses."""
+        raise NotImplementedError
 
 
 class SyntheticRunner(BaseRunner):
