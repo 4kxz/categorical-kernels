@@ -303,8 +303,10 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
 
 # Multivariate
 
-def fast_m1(X, Y, pgen, alpha=1.0):
+def fast_m1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
     xm, xn = X.shape
     ym, yn = Y.shape
     Xp = h(apply_pgen(pgen, X))
@@ -313,8 +315,9 @@ def fast_m1(X, Y, pgen, alpha=1.0):
     Yp = h(apply_pgen(pgen, Y))
     YL = np.tile(Y, (xm, 1))
     YP = np.tile(Yp, (xm, 1))
-    G = (XL == YL) * XP
-    G = np.sum(G, axis=1) * 2 / np.sum(XP + YP, axis=1)
+    G = prevf((XL == YL) * XP)
+    G = np.sum(G, axis=1) * 2 / np.sum(prevf(XP) + prevf(YP), axis=1)
+    G = postf(G)
     return G.reshape(xm, ym)
 
 

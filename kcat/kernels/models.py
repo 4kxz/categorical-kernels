@@ -119,6 +119,12 @@ class M1(Model):
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'alpha': 1.5 ** np.arange(-4, 3),
+        'functions': [
+            ('ident', 'ident'),
+            ('ident', 'f1'),
+            ('f1', 'ident'),
+            ],
+        'gamma': 2.0 ** np.arange(-3, 2),
         }
 
 

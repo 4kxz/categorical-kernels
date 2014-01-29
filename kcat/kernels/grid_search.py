@@ -170,8 +170,10 @@ class GridSearchM1(GridSearchWrapper):
 
     :param alpha: A list of values."""
 
-    def __init__(self, alpha, **kwargs):
+    def __init__(self, alpha, functions, gamma, **kwargs):
         self.alpha = alpha
+        self.functions = functions
+        self.gamma = gamma
         super().__init__(**kwargs)
 
     def fit(self, X, y, pgen):
@@ -181,16 +183,19 @@ class GridSearchM1(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
-        for a in self.alpha:
-            result = GridSearchCV(**self.gskwargs)
-            params = dict(alpha=a)
-            gram = fn.fast_k1(X, X, pgen, **params)
-            result.fit(gram, y)
-            if result.best_score_ >= self.best_score_:
-                self.best_score_ = result.best_score_
-                self.best_params_ = result.best_params_
-                self.best_kparams_ = params
-                self.best_estimator_ = result.best_estimator_
+        for prev, post in self.functions:
+            uses_gammas = prev == 'f1' or post == 'f1'
+            for g in self.gamma if uses_gammas else [None]:
+                for a in self.alpha:
+                    result = GridSearchCV(**self.gskwargs)
+                    params = dict(alpha=a, prev=prev, post=post, gamma=g)
+                    gram = fn.fast_m1(X, X, pgen, **params)
+                    result.fit(gram, y)
+                    if result.best_score_ >= self.best_score_:
+                        self.best_score_ = result.best_score_
+                        self.best_params_ = result.best_params_
+                        self.best_kparams_ = params
+                        self.best_estimator_ = result.best_estimator_
 
 
 class GridSearchELK(GridSearchWrapper):
