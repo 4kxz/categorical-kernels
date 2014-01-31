@@ -17,9 +17,8 @@ class BaseRunner:
     dataset can be implemented by subclassing *BaseRunner*.
     """
 
-    def __init__(self, state, tmp=False, verbose=False):
+    def __init__(self, state, verbose):
         self.state = state
-        self.tmp = tmp
         self.verbose = verbose
         self.results = []
 
@@ -35,21 +34,20 @@ class BaseRunner:
         for i in range(iterations):
             self._single_run(**kwargs)
 
-    def _single_run(self, train_size, test_size, folds, **kwargs):
+    def _single_run(self, **kwargs):
         """Generate a dataset an train/test all the kernels on it."""
         if self.verbose:
             print("#{} {}".format(self.state, time.asctime()))
         # Generate the appropiate dataset:
-        size = train_size + test_size
-        dataset = self._generate_dataset(size=size, **kwargs)
+        dataset = self._generate_dataset(**kwargs)
         # Split the data in train and test:
         X_train, X_test, y_train, y_test = dataset.train_test_split(
-            train_size=train_size,
-            test_size=test_size,
+            train_size=kwargs['train_size'],
+            test_size=kwargs['test_size'],
             random_state=self.state,
             )
         # Cross validation folds:
-        cvf = cv.StratifiedKFold(y_train, folds)
+        cvf = cv.StratifiedKFold(y_train, kwargs['folds'])
         # Test preformance with every kernel:
         evaluation = {}
         for kernel_model in md.train_test_models:
@@ -68,9 +66,9 @@ class BaseRunner:
             'arguments': kwargs,
             'evaluation': evaluation,
             })
-        # Save partial results when specified:
-        if self.tmp:
-            self.save("{}~".format(arguments.output))
+        # Save partial results:
+        if self.verbose:
+            self.save("{}.json~".format(kwargs['dataset']))
         # Change state for next run:
         self.state += 1
 
@@ -90,15 +88,17 @@ class SyntheticRunner(BaseRunner):
         else:
             super()._batch_run(**kwargs)
 
-    def _generate_dataset(self, size, n, c, p, **kwargs):
-        return ds.Synthetic(m=size, n=n, c=c, p=p, random_state=self.state)
+    def _generate_dataset(self, train_size, test_size, n, c, p, **kwargs):
+        m = train_size + test_size
+        return ds.Synthetic(m=m, n=n, c=c, p=p, random_state=self.state)
 
 
-class GmonksRunner(BaseRunner):
+class GMonksRunner(BaseRunner):
     """Batch run train/test with the gmonks dataset."""
 
-    def _generate_dataset(self, size, d, **kwargs):
-        return ds.GMonks(m=size, d=d, random_state=self.state)
+    def _generate_dataset(self, train_size, test_size, d, **kwargs):
+        m = train_size + test_size
+        return ds.GMonks(m=m, d=d, random_state=self.state)
 
 
 # class WebkbRunner(BaseRunner):

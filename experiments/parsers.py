@@ -17,11 +17,6 @@ class BaseParser(ArgumentParser):
             help='show progress',
             )
         self.add_argument(
-            '-t', '--tmp',
-            action='store_true',
-            help='store partial results in temporary file',
-            )
-        self.add_argument(
             '-o', '--output',
             default='results.json',
             type=str,
@@ -34,7 +29,7 @@ class BaseParser(ArgumentParser):
             help='number of repetitions',
             )
         self.add_argument(
-            '-s', '--random-state',
+            '-s', '--seed',
             default=0,
             type=int,
             help='seed for the random state',
@@ -81,7 +76,7 @@ class SyntheticParser(BaseParser):
             )
 
 
-class GmonksParser(BaseParser):
+class GMonksParser(BaseParser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -92,5 +87,5 @@ class GmonksParser(BaseParser):
             )
 
 
-class WebkbParser(BaseParser):
+class WebKBParser(BaseParser):
     pass
