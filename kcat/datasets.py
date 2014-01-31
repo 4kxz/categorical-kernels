@@ -53,7 +53,7 @@ def synthetic(m, n=25, c=4, p=0.5, random_state=None):
     # datasets may not contain instances of every single category in the
     # dataset, making it impossible to infer the correct binarization from just
     # part of the whole dataset.
-    def custom_binary_encoder(X):
+    def dummy_variable_form(X):
         # Each attribute has a value between 0 and `a`.
         # We create the matrix with zeros, with a column for each possible
         # category of each attribute, then set to one the corresponding
@@ -66,7 +66,7 @@ def synthetic(m, n=25, c=4, p=0.5, random_state=None):
                 v = X[i][j]
                 Y[i][j * a + v] = 1
         return Y
-    return X, y, custom_binary_encoder
+    return X, y, dummy_variable_form, lambda x: x
 
 
 def gmonks(m, d=2, random_state=None):
