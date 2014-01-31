@@ -58,15 +58,14 @@ with open(args.filename, "r") as f:
     # Flatten data before loading into pandas.
     items = []
     for raw in json.load(f):
-        for k in raw['kernels']:
+        for k in raw['evaluation']:
             item = {
                 'kernel': k,
-                'train_error': 1 - raw['kernels'][k]['train_score'],
-                'test_error': 1 - raw['kernels'][k]['test_score'],
+                'train_error': 1 - raw['evaluation'][k]['train_score'],
+                'test_error': 1 - raw['evaluation'][k]['test_score'],
                 }
-            item.update(raw['kernels'][k]['best_parameters'])
-            item.update(raw['run_args'])
-            item.update(raw['data_args'])
+            item.update(raw['evaluation'][k]['best_parameters'])
+            item.update(raw['arguments'])
             items.append(item)
 
 # Create dataframe and clean things up.

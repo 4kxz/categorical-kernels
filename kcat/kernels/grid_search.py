@@ -34,6 +34,7 @@ class GridSearchWrapper:
         self.best_kparams_ = {}
         self.best_estimator_ = None
         self.X = None
+        self.pgen = None
 
     def fit(self, X, y):
         """Fit the model to the data matrix *X* and class vector *y*.
@@ -83,7 +84,7 @@ class GridSearchK0(GridSearchWrapper):
             for g in self.gamma if uses_gammas else [None]:
                 result = GridSearchCV(**self.gskwargs)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fn.fast_k0(X, X, **params)
+                gram = fn.fast_k0(X, X, pgen=self.pgen, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_score_ = result.best_score_
@@ -114,6 +115,7 @@ class GridSearchK1(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
+        self.pgen = pgen
         # Only 'f1' and 'f2' use gammas, no need to search all the
         # permutations.
         for prev, post in self.functions:
@@ -149,6 +151,7 @@ class GridSearchK2(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
+        self.pgen = pgen
         # Only 'f1' and 'f2' use gammas, no need to search all the
         # permutations.
         for prev, post in self.functions:
@@ -183,6 +186,7 @@ class GridSearchM1(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
+        self.pgen = pgen
         for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post == 'f1'
             for g in self.gamma if uses_gammas else [None]:

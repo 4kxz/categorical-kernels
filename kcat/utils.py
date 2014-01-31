@@ -49,7 +49,7 @@ def apply_pgen(pgen, X):
     return P
 
 
-def binary_encoder(X):
+def dummy_variable(X):
     """Takes a matrix with a categorical variables and encodes them in dummy
     variable form. Say, for three categories:
 
