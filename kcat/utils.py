@@ -2,7 +2,6 @@ import collections
 
 import numpy as np
 
-
 def get_pgen(X):
     """Obtains a probability mass function generator from `X`.
 
@@ -47,6 +46,18 @@ def apply_pgen(pgen, X):
         for j in range(n):
             P[i][j] = max(pgen(j)(X[i][j]), p)
     return P
+
+
+def pgen(X):
+    """Returns a function that applies `pgen` to each element in `X`.
+
+    :param X: Matrix where each row is an example and each column a categorical
+        attribute.
+
+    :returns: Function that applies pgen to any matrix.
+    """
+    pgen = get_pgen(X)
+    return lambda Y: apply_pgen(pgen, Y)
 
 
 def dummy_variable(X):

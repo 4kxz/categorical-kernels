@@ -303,22 +303,22 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
 
 # Multivariate
 
-def fast_m1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
+def fast_m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     prevf = get_vector_function(prev, kwargs)
     postf = get_vector_function(post, kwargs)
     xm, xn = X.shape
     ym, yn = Y.shape
-    Xp = h(apply_pgen(pgen, X))
-    XL = np.repeat(X, ym, axis=0)
-    XP = np.repeat(Xp, ym, axis=0)
-    Yp = h(apply_pgen(pgen, Y))
-    YL = np.tile(Y, (xm, 1))
-    YP = np.tile(Yp, (xm, 1))
-    G = prevf((XL == YL) * XP)
-    G = np.sum(G, axis=1) * 2 / np.sum(prevf(XP) + prevf(YP), axis=1)
-    G = postf(G)
-    return G.reshape(xm, ym)
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        XI = np.tile(X[i], (ym, 1))
+        XP = np.tile(Xp[i], (ym, 1))
+        XI = prevf((XI == Y) * XP)
+        XP = prevf(XP) + prevf(Yp)
+        G[i, :] = 2.0 * np.sum(XI, axis=1) / np.sum(XP, axis=1)
+    return postf(G)
 
 
 # Expected Likelyhood Kernel

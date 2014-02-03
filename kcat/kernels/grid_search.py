@@ -13,6 +13,7 @@ For convenience, default parameters for the search are defined in
 from sklearn.grid_search import GridSearchCV
 
 from . import functions as fn
+from ..utils import pgen
 
 
 class GridSearchWrapper:
@@ -47,6 +48,9 @@ class GridSearchWrapper:
         self.best_estimator_ = result.best_estimator_
         self.best_params_ = result.best_params_
         self.best_score_ = result.best_score_
+
+    def predict(self, X):
+        return self.best_estimator_.predict(X)
 
     @property
     def details(self):
@@ -92,6 +96,13 @@ class GridSearchK0(GridSearchWrapper):
                     self.best_kparams_ = params
                     self.best_estimator_ = result.best_estimator_
 
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = fn.fast_k0(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
+
 
 class GridSearchK1(GridSearchWrapper):
     """Finds the best parameters for *K1*.
@@ -115,7 +126,8 @@ class GridSearchK1(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
-        self.pgen = pgen
+        self.pgen = pgen(X)
+        Xp = self.pgen(X)
         # Only 'f1' and 'f2' use gammas, no need to search all the
         # permutations.
         for prev, post in self.functions:
@@ -124,13 +136,20 @@ class GridSearchK1(GridSearchWrapper):
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.fast_k1(X, X, pgen, **params)
+                    gram = fn.fast_k1(X, X, Xp, Xp, pgen, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
                         self.best_params_ = result.best_params_
                         self.best_kparams_ = params
                         self.best_estimator_ = result.best_estimator_
+
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = fn.fast_k1(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
 
 
 class GridSearchK2(GridSearchWrapper):
@@ -151,7 +170,8 @@ class GridSearchK2(GridSearchWrapper):
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
-        self.pgen = pgen
+        self.pgen = pgen(X)
+        Xp = self.pgen(X)
         # Only 'f1' and 'f2' use gammas, no need to search all the
         # permutations.
         for prev, post in self.functions:
@@ -159,13 +179,20 @@ class GridSearchK2(GridSearchWrapper):
             for g in self.gamma if uses_gammas else [None]:
                 result = GridSearchCV(**self.gskwargs)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fn.fast_k2(X, X, pgen, **params)
+                gram = fn.fast_k2(X, X, Xp, Xp, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_score_ = result.best_score_
                     self.best_params_ = result.best_params_
                     self.best_kparams_ = params
                     self.best_estimator_ = result.best_estimator_
+
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = fn.fast_k2(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
 
 
 class GridSearchM1(GridSearchWrapper):
@@ -179,27 +206,35 @@ class GridSearchM1(GridSearchWrapper):
         self.gamma = gamma
         super().__init__(**kwargs)
 
-    def fit(self, X, y, pgen):
+    def fit(self, X, y):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 
         About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
         """
         self.X = X
-        self.pgen = pgen
+        self.pgen = pgen(X)
+        Xp = self.pgen(X)
         for prev, post in self.functions:
             uses_gammas = prev == 'f1' or post == 'f1'
             for g in self.gamma if uses_gammas else [None]:
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.fast_m1(X, X, pgen, **params)
+                    gram = fn.fast_m1(X, X, Xp, Xp, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
                         self.best_params_ = result.best_params_
                         self.best_kparams_ = params
                         self.best_estimator_ = result.best_estimator_
+
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = fn.fast_m1(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
 
 
 class GridSearchELK(GridSearchWrapper):
@@ -214,3 +249,7 @@ class GridSearchELK(GridSearchWrapper):
         self.best_params_ = result.best_params_
         self.best_score_ = result.best_score_
         self.best_estimator_ = result.best_estimator_
+
+    def predict(self, X):
+        gram = fn.elk(X, self.X)
+        return self.best_estimator_.predict(gram)
