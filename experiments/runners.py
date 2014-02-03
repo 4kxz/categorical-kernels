@@ -94,73 +94,15 @@ class SyntheticRunner(BaseRunner):
 
 
 class GMonksRunner(BaseRunner):
-    """Batch run train/test with the gmonks dataset."""
+    """Batch run train/test with the GMonks dataset."""
 
     def _generate_dataset(self, train_size, test_size, d, **kwargs):
         m = train_size + test_size
         return ds.GMonks(m=m, d=d, random_state=self.state)
 
 
-# class WebkbRunner(BaseRunner):
+class WebKBRunner(BaseRunner):
+    """Batch run train/test with the WebKB dataset."""
 
-#     def _single_run(self, arguments):
-#         """Generate a dataset an train/test all the kernels on it."""
-#         if arguments.verbose:
-#             print("#{} {}".format(self.state, time.asctime()))
-#         # Use the appropiate dataset:
-#         dataset, data_arguments = self._generate_dataset(arguments=arguments)
-#         X, y, categorize = dataset
-#         # Split the data in train and test:
-#         print(X.shape, y.shape)
-#         X_train, X_test, y_train, y_test = cv.train_test_split(X, y,
-#             train_size=arguments.train_size,
-#             test_size=arguments.test_size,
-#             random_state=self.state,
-#             )
-#         # Compute other stuff needed for some kernels:
-#         Xcat_train = categorize(X_train)
-#         Xcat_test = categorize(X_test)
-#         pgen = get_pgen(X_train)
-#         # Specify the cross-validation to use:
-#         cvf = cv.StratifiedKFold(y_train, arguments.folds)
-#         # Test preformance with every kernel:
-#         kernels = {}
-#         if arguments.verbose:
-#             print('Running rbf...')
-#         kernels['rbf'] = models.RBF.evaluate(
-#             cvf, X_train, X_test, y_train, y_test)
-#         if arguments.verbose:
-#             print('Running k0...')
-#         kernels['k0'] = models.K0.evaluate(
-#             cvf, Xcat_train, Xcat_test, y_train, y_test)
-#         if arguments.verbose:
-#             print('Running k1...')
-#         kernels['k1'] = models.K1.evaluate(
-#             cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
-#         if arguments.verbose:
-#             print('Running k2...')
-#         kernels['k2'] = models.K2.evaluate(
-#             cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
-#         if arguments.verbose:
-#             print('Running m1...')
-#         kernels['m1'] = models.M1.evaluate(
-#             cvf, Xcat_train, Xcat_test, y_train, y_test, pgen=pgen)
-#         if arguments.verbose:
-#             print('Running elk...')
-#         kernels['elk'] = models.ELK.evaluate(
-#             cvf, X_train, X_test, y_train, y_test)
-#         # Update stuff and return results:
-#         self.state += 1
-#         self.results.append({
-#             'timestamp': time.asctime(),
-#             'run_arguments': dict(arguments._get_kwarguments()),
-#             'data_arguments': data_arguments,
-#             'kernels': kernels,
-#             })
-#         # Save partial results when specified:
-#         if arguments.tmp:
-#             self.save("{}~".format(arguments.output))
-
-
-#     def _generate_dataset(self, arguments):
-#         return datasets.webkb(), {}
+    def _generate_dataset(self, **kwargs):
+        return ds.WebKB()

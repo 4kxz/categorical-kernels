@@ -17,9 +17,9 @@ class Dataset:
 
     def train_test_split(self, **kwargs):
         split = cv.train_test_split(*self.data_arrays, **kwargs)
-        Q_tr, Q_ts, C_tr, C_ts, y_train, y_test = split
-        X_train = {'default': Q_tr, 'categorical': C_tr}
-        X_test = {'default': Q_ts, 'categorical': C_ts}
+        C_tr, C_ts, Q_tr, Q_ts, y_train, y_test = split
+        X_train = {'categorical': C_tr, 'default': Q_tr}
+        X_test = {'categorical': C_ts, 'default': Q_ts}
         return X_train, X_test, y_train, y_test
 
 
@@ -44,7 +44,6 @@ class Synthetic(Dataset):
 
         :returns: - A matrix of size :math:`m \\times n` with the dataset.
                   - An array with the class of the `m` examples.
-                  - (optional) A binary encoding function for X.
         """
         random.seed(random_state)
         p **= 2.0  # Makes the effect of the parameter more linear.
@@ -68,24 +67,18 @@ class Synthetic(Dataset):
                 rand = random.random() > (c / a * p)
                 value = random.choice(common) if rand else unique[y[i]]
                 X[i][j] = value
-        # Also return a binary encoder. The encoder is necessary because small
-        # datasets may not contain instances of every single category in the
-        # dataset, making it impossible to infer the correct binarization from just
-        # part of the whole dataset.
-        def dummy_variable_form(X):
-            # Each attribute has a value between 0 and `a`.
-            # We create the matrix with zeros, with a column for each possible
-            # category of each attribute, then set to one the corresponding
-            # column for each example.
-            m, n = X.shape
-            Y = np.zeros((m, n * a))
-            # For each attribute:
-            for i in range(m):
-                for j in range(n):
-                    v = X[i][j]
-                    Y[i][j * a + v] = 1
-            return Y
-        return dummy_variable_form(X), X, y
+        # Encode the dataset in dummy variable form:
+        # Each attribute has a value between 0 and `a`.
+        # We create the matrix with zeros, with a column for each possible
+        # category of each attribute, then set to one the corresponding column
+        # for each example.
+        Y = np.zeros((m, n * a))
+        # For each attribute:
+        for i in range(m):
+            for j in range(n):
+                v = X[i][j]
+                Y[i][j * a + v] = 1
+        return X, Y, y
 
 
 class GMonks(Dataset):
@@ -113,9 +106,9 @@ class GMonks(Dataset):
             (C1, C2, C3, C4),
             (C1, C2),
         )
-        x, y = [], []
+        X, y = [], []
         for i in range(m):
-            x.append([])
+            X.append([])
             fk = 0
             for j in range(d):
                 fj = [random.choice(a) for a in categories]
@@ -123,9 +116,10 @@ class GMonks(Dataset):
                 p2 = sum(1 if x == C1 else 0 for x in fj) >= 2
                 p3 = (fj[4] == C3 and fj[3] == C1) or (fj[4] != C3 and fj[1] != C2)
                 fk += 1 if p2 and not(p1 and p3) else 0
-                x[i] += fj
+                X[i] += fj
             y.append(fk >= d / 2)
-        return np.array(x), np.array(y), dummy_variable
+        X, y = np.array(X), np.array(y)
+        return X, dummy_variable(X), y
 
 
 class promoter(Dataset):
@@ -149,7 +143,7 @@ class promoter(Dataset):
                 X.append([categories[i] for i in seq.strip()])
                 y.append(cat == '+')
             X, y = np.array(X), np.array(y)
-            return X,  y, dummy_variable
+            return X, dummy_variable(X), y
 
 
 class Splice(Dataset):
@@ -174,7 +168,7 @@ class Splice(Dataset):
                 X.append([categories[i] for i in seq.strip()])
                 y.append(classes[cat])
             X, y = np.array(X), np.array(y)
-            return X,  y, dummy_variable
+            return X, dummy_variable(X), y
 
 
 class Soybean(Dataset):
@@ -214,7 +208,7 @@ class Soybean(Dataset):
                 if test_size == 340:
                     break
         X, y = np.array(X), np.array(y)
-        return X, y, dummy_variable
+        return X, dummy_variable(X), y
 
 
 class Mushroom(Dataset):
@@ -236,7 +230,7 @@ class Mushroom(Dataset):
                 y.append(seq[0])
                 X.append([ord(x.strip()) for x in seq[1:]])
         X, y = np.array(X), np.array(y)
-        return X, y, dummy_variable
+        return X, dummy_variable(X), y
 
 
 class WebKB(Dataset):
@@ -271,5 +265,5 @@ class WebKB(Dataset):
                                1 if x < 0.001 else \
                                2 if x < 0.01 else \
                                3 if x < 0.1 else 4
-        encoder = np.vectorize(categorize)
-        return X, y, encoder
+        categorize = np.vectorize(categorize)
+        return categorize(X), X, y
