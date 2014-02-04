@@ -2,6 +2,7 @@
 
 # Hidden files
 .*
+*~
 
 # C extensions
 *.so
