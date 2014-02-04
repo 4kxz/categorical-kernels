@@ -88,7 +88,7 @@ class GridSearchK0(GridSearchWrapper):
             for g in self.gamma if uses_gammas else [None]:
                 result = GridSearchCV(**self.gskwargs)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fn.fast_k0(X, X, pgen=self.pgen, **params)
+                gram = fn.fast_k0(X, X, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_score_ = result.best_score_
@@ -97,10 +97,8 @@ class GridSearchK0(GridSearchWrapper):
                     self.best_estimator_ = result.best_estimator_
 
     def predict(self, X):
-        Xp  = self.pgen(X)
         Y = self.X
-        Yp = self.pgen(Y)
-        gram = fn.fast_k0(X, Y, Xp, Yp, **self.best_kparams_)
+        gram = fn.fast_k0(X, Y, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 
@@ -118,7 +116,7 @@ class GridSearchK1(GridSearchWrapper):
         self.gamma = gamma
         super().__init__(**kwargs)
 
-    def fit(self, X, y, pgen):
+    def fit(self, X, y):
         """Fit the model to the data matrix *X* and class vector *y*.
 
         :param pgen: A probability distribution.
@@ -136,7 +134,7 @@ class GridSearchK1(GridSearchWrapper):
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.fast_k1(X, X, Xp, Xp, pgen, **params)
+                    gram = fn.fast_k1(X, X, Xp, Xp, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
@@ -163,7 +161,7 @@ class GridSearchK2(GridSearchWrapper):
         self.gamma = gamma
         super().__init__(**kwargs)
 
-    def fit(self, X, y, pgen):
+    def fit(self, X, y):
         """Fit the model to the data matrix *X* and class vector *y*.
         :param pgen: A probability distribution.
 

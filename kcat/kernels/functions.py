@@ -105,11 +105,12 @@ def fast_k0(X, Y, prev='ident', post='ident', **kwargs):
     xm, xn = X.shape
     ym, yn = Y.shape
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, ym, axis=0)
-    YL = np.tile(Y, (xm, 1))
-    G = XL == YL
-    G = postf(np.mean(prevf(G), axis=1))
-    return G.reshape(xm, ym)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        Xi = np.tile(X[i], (ym, 1))
+        Xi = prevf(Xi == Y)
+        G[i, :] = np.mean(Xi, axis=1)
+    return postf(G)
 
 
 # Categorical Kernel K1
@@ -161,7 +162,7 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
     """
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
     prevf = get_function(prev, kwargs)
-    postf =  get_function(post, kwargs)
+    postf = get_function(post, kwargs)
     # Compute the kernel matrix:
     G = np.zeros((len(X), len(Y)))
     for i, u in enumerate(X):
@@ -169,43 +170,40 @@ def k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
             G[i][j] = postf(k1_mult, u, v, h, pgen, prevf)
     return G
 
-def fast_k1(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
+def fast_k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """An optimised version of :meth:`k1` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
     work with numpy arrays.
     """
     h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    Yp = h(apply_pgen(pgen, Y))
     prevf = get_vector_function(prev, kwargs)
     postf = get_vector_function(post, kwargs) if post != 'f2' else None
     # The function f2 needs to be treated separately.
     xm, xn = X.shape
     ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, ym, axis=0)
-    YL = np.tile(Y, (xm, 1))
-    YP = np.tile(Yp, (xm, 1))
-    G = (XL == YL) * YP
-    G = np.mean(prevf(G), axis=1)
-    # When post == 'f2', postf does nothing.
-    # The actual post function is applied here:
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        Xi = np.tile(X[i], (ym, 1))
+        Xq = np.tile(Xp[i], (ym, 1))
+        Xi = prevf((Xi == Y) * Xq)
+        G[i, :] = np.mean(Xi, axis=1)
     if post != 'f2':
-        G = postf(G)
+        return postf(G)
     else:
         # We know that: f2 = e ^ (gamma * (2 * k(x, y) - k(x, x) - k(y, y))).
         # The current values of G are those of k(x, y).
         # We need to compute the values of k(x, x) and k(y, y) for each
         # x in X and y in Y:
-        Px = h(apply_pgen(pgen, X))
-        GX = np.repeat(Px, ym, axis=0)
-        GY = np.tile(Yp, (xm, 1))
-        GX = np.mean(prevf(GX), axis=1)
-        GY = np.mean(prevf(GY), axis=1)
-        # Apply f2:
         gamma = kwargs['gamma']
-        G = np.exp(gamma * (2.0 * G - GX - GY))
-    return G.reshape(xm, ym)
+        GX = np.mean(prevf(Xp), axis=1)
+        GX = np.tile(GX, (ym, 1)).T
+        GY = np.mean(prevf(Yp), axis=1)
+        GY = np.tile(GY, (xm, 1))
+        return np.exp(gamma * (2.0 * G - GX - GY))
 
 
 # Categorical Kernel K2
@@ -263,7 +261,7 @@ def k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
             G[i][j] = postf(np.sqrt(k2_mult(u, v, pgen, len(Y), prevf)))
     return G
 
-def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
+def fast_k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
     """An optimised version of :meth:`k2` with the same interface.
 
     Since the code is vectorised any Python functions passed as argument must
@@ -274,31 +272,28 @@ def fast_k2(X, Y, pgen, prev='ident', post='ident', **kwargs):
     # The function f2 needs to be treated separately.
     xm, xn = X.shape
     ym, yn = Y.shape
-    Yp = 1.0 / apply_pgen(pgen, Y)
+    Xp = 1.0 / Xp
+    Yp = 1.0 / Yp
     # The gram matrix is computed using vectorised operations because speed:
-    XL = np.repeat(X, ym, axis=0)
-    YL = np.tile(Y, (xm, 1))
-    YP = np.tile(Yp, (xm, 1))
-    G = (XL == YL) * YP
-    G = np.sqrt(np.sum(prevf(G), axis=1))
-    # When post == 'f2', postf does nothing.
-    # The actual post function is applied here:
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        Xi = np.tile(X[i], (ym, 1))
+        Xq = np.tile(Xp[i], (ym, 1))
+        Xi = prevf((Xi == Y) * Xq)
+        G[i, :] = np.sum(Xi, axis=1)
     if post != 'f2':
-        G = postf(G)
+        return postf(G)
     else:
         # We know that: f2 = e ^ (gamma * (2 * k(x, y) - k(x, x) - k(y, y))).
         # The current values of G are those of k(x, y).
         # We need to compute the values of k(x, x) and k(y, y) for each
         # x in X and y in Y:
-        Xp = 1.0 / apply_pgen(pgen, X)
-        GX = np.repeat(Xp, ym, axis=0)
-        GY = np.tile(Yp, (xm, 1))
-        GX = np.sqrt(np.sum(prevf(GX), axis=1))
-        GY = np.sqrt(np.sum(prevf(GY), axis=1))
-        # Apply f2:
         gamma = kwargs['gamma']
-        G = np.exp(gamma * (2.0 * G - GX - GY))
-    return G.reshape(xm, ym)
+        GX = np.mean(prevf(Xp), axis=1)
+        GX = np.tile(GX, (ym, 1)).T
+        GY = np.mean(prevf(Yp), axis=1)
+        GY = np.tile(GY, (xm, 1))
+        return np.exp(gamma * (2.0 * G - GX - GY))
 
 
 # Multivariate
@@ -313,11 +308,11 @@ def fast_m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     Yp = h(Yp)
     G = np.zeros((xm, ym))
     for i in range(xm):
-        XI = np.tile(X[i], (ym, 1))
-        XP = np.tile(Xp[i], (ym, 1))
-        XI = prevf((XI == Y) * XP)
-        XP = prevf(XP) + prevf(Yp)
-        G[i, :] = 2.0 * np.sum(XI, axis=1) / np.sum(XP, axis=1)
+        Xi = np.tile(X[i], (ym, 1))
+        Xq = np.tile(Xp[i], (ym, 1))
+        Xi = prevf((Xi == Y) * Xq)
+        Xq = prevf(Xq) + prevf(Yp)
+        G[i, :] = 2.0 * np.sum(Xi, axis=1) / np.sum(Xq, axis=1)
     return postf(G)
 
 
