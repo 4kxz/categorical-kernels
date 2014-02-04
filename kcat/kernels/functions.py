@@ -277,7 +277,7 @@ def fast_k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
     for i in range(xm):
         Xi = np.tile(X[i], (ym, 1))
         Xi = prevf((Xi == Y) * Yp)
-        G[i, :] = np.sum(Xi, axis=1)
+        G[i, :] = np.sqrt(np.sum(Xi, axis=1))
     if post != 'f2':
         return postf(G)
     else:
@@ -287,9 +287,9 @@ def fast_k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
         # x in X and y in Y:
         gamma = kwargs['gamma']
         Xp = 1.0 / Xp
-        GX = np.sum(prevf(Xp), axis=1)
+        GX = np.sqrt(np.sum(prevf(Xp), axis=1))
         GX = np.tile(GX, (ym, 1)).T
-        GY = np.sum(prevf(Yp), axis=1)
+        GY = np.sqrt(np.sum(prevf(Yp), axis=1))
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 

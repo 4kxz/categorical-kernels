@@ -90,7 +90,7 @@ df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
 plt.savefig('{}-count.png'.format(args.output))
 
 if args.synthetic:
-    df = df[df.dataset == 'synthetic']
+    df = df[df.dataset == 'Synthetic']
     # Plot scores for each kernel grouped by p
     df['p'] = df['p'].round(decimals=2)
     by_kernel = df.groupby('kernel').groups

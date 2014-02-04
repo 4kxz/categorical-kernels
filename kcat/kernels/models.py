@@ -103,7 +103,7 @@ class K2(Model):
             ('ident', 'f2'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 1),
+        'gamma': 2.0 ** np.arange(-3, 2),
         }
 
 
@@ -120,7 +120,7 @@ class M1(Model):
             ('ident', 'f1'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 2),
+        'gamma': 2.0 ** np.arange(-3, 3),
         }
 
 
