@@ -182,14 +182,12 @@ def fast_k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     # The function f2 needs to be treated separately.
     xm, xn = X.shape
     ym, yn = Y.shape
-    Xp = h(Xp)
     Yp = h(Yp)
     # The gram matrix is computed using vectorised operations because speed:
     G = np.zeros((xm, ym))
     for i in range(xm):
         Xi = np.tile(X[i], (ym, 1))
-        Xq = np.tile(Xp[i], (ym, 1))
-        Xi = prevf((Xi == Y) * Xq)
+        Xi = prevf((Xi == Y) * Yp)
         G[i, :] = np.mean(Xi, axis=1)
     if post != 'f2':
         return postf(G)
@@ -199,6 +197,7 @@ def fast_k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         # We need to compute the values of k(x, x) and k(y, y) for each
         # x in X and y in Y:
         gamma = kwargs['gamma']
+        Xp = h(Xp)
         GX = np.mean(prevf(Xp), axis=1)
         GX = np.tile(GX, (ym, 1)).T
         GY = np.mean(prevf(Yp), axis=1)
@@ -272,14 +271,12 @@ def fast_k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
     # The function f2 needs to be treated separately.
     xm, xn = X.shape
     ym, yn = Y.shape
-    Xp = 1.0 / Xp
     Yp = 1.0 / Yp
     # The gram matrix is computed using vectorised operations because speed:
     G = np.zeros((xm, ym))
     for i in range(xm):
         Xi = np.tile(X[i], (ym, 1))
-        Xq = np.tile(Xp[i], (ym, 1))
-        Xi = prevf((Xi == Y) * Xq)
+        Xi = prevf((Xi == Y) * Yp)
         G[i, :] = np.sum(Xi, axis=1)
     if post != 'f2':
         return postf(G)
@@ -289,9 +286,10 @@ def fast_k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
         # We need to compute the values of k(x, x) and k(y, y) for each
         # x in X and y in Y:
         gamma = kwargs['gamma']
-        GX = np.mean(prevf(Xp), axis=1)
+        Xp = 1.0 / Xp
+        GX = np.sum(prevf(Xp), axis=1)
         GX = np.tile(GX, (ym, 1)).T
-        GY = np.mean(prevf(Yp), axis=1)
+        GY = np.sum(prevf(Yp), axis=1)
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
@@ -309,8 +307,8 @@ def fast_m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     G = np.zeros((xm, ym))
     for i in range(xm):
         Xi = np.tile(X[i], (ym, 1))
+        Xi = prevf((Xi == Y) * Yp)
         Xq = np.tile(Xp[i], (ym, 1))
-        Xi = prevf((Xi == Y) * Xq)
         Xq = prevf(Xq) + prevf(Yp)
         G[i, :] = 2.0 * np.sum(Xi, axis=1) / np.sum(Xq, axis=1)
     return postf(G)
