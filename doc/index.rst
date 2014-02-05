@@ -12,6 +12,12 @@ Here's a full view of the library tree:
    kcat
 
 
+Building this documentation requires::
+
+    Sphix >= 1.2
+    sphinxcontrib-napoleon >= 0.2.4
+
+
 Indices and tables
 ==================
 

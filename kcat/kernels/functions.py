@@ -53,9 +53,29 @@ def get_vector_function(name, params=None):
 
 # Vectorised kernel functions
 
-def k_0(X, Y, prev='ident', post='ident', **kwargs):
+def elk(X, Y):
     """Computes a matrix with the values of applying the kernel
-    :math:`k_0` between each pair of elements in *X* and *Y*.
+    :math:`ELK` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+
+    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    """
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    # Compute the kernel matrix:
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        Xi = np.tile(X[i], (ym, 1))
+        Xi = np.sqrt(Xi * Y)
+        G[i, :] = np.sum(Xi, axis=1)
+    return G
+
+def k0(X, Y, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`k_0` between each pair of elements in :math:`X` and :math:`Y`.
 
     Args:
         X: Numpy matrix.
@@ -66,9 +86,7 @@ def k_0(X, Y, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    Returns:
-        Gram matrix with the kernel value between each pair of elements
-        in *X* and *Y*.
+    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -85,9 +103,9 @@ def k_0(X, Y, prev='ident', post='ident', **kwargs):
         G[i, :] = np.mean(Xi, axis=1)
     return postf(G)
 
-def k_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+def k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
-    :math:`k_1` between each pair of elements in *X* and *Y*.
+    :math:`k_1` between each pair of elements in :math:`X` and :math:`Y`.
 
     Args:
         X: Numpy matrix.
@@ -101,9 +119,7 @@ def k_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    Returns:
-        Gram matrix with the kernel value between each pair of elements
-        in *X* and *Y*.
+    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -136,9 +152,9 @@ def k_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
-def k_2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
+def k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
-    :math:`k_2` between each pair of elements in *X* and *Y*.
+    :math:`k_2` between each pair of elements in :math:`X` and :math:`Y`.
 
     Args:
         X: Numpy matrix.
@@ -151,9 +167,7 @@ def k_2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    Returns:
-        Gram matrix with the kernel value between each pair of elements
-        in *X* and *Y*.
+    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -185,9 +199,9 @@ def k_2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
-def m_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+def m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
-    :math:`m_1` between each pair of elements in *X* and *Y*.
+    :math:`m_1` between each pair of elements in :math:`X` and :math:`Y`.
 
     Args:
         X: Numpy matrix.
@@ -201,8 +215,7 @@ def m_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    Returns:
-        Numpy matrix of size :math:`m_x \\times m_y`.
+    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -222,24 +235,3 @@ def m_1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         Xq = prevf(Xq) + prevf(Yp)
         G[i, :] = 2.0 * np.sum(Xi, axis=1) / np.sum(Xq, axis=1)
     return postf(G)
-
-def elk(X, Y):
-    """Computes a matrix with the values of applying the kernel *ELK*
-    between each pair of elements in *X* and *Y*.
-
-    Args:
-        X: Numpy matrix.
-        Y: Numpy matrix.
-
-    Returns:
-        Numpy matrix of size :math:`m_x \\times m_y`.
-    """
-    xm, xn = X.shape
-    ym, yn = Y.shape
-    # Compute the kernel matrix:
-    G = np.zeros((xm, ym))
-    for i in range(xm):
-        Xi = np.tile(X[i], (ym, 1))
-        Xi = np.sqrt(Xi * Y)
-        G[i, :] = np.sum(Xi, axis=1)
-    return G

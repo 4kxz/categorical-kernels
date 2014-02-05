@@ -46,20 +46,20 @@ class Model:
         return results
 
 
-class RBF(Model):
-    svc = 'rbf'
-    kernel = None
-    searcher = gs.GridSearchWrapper
+class ELK(Model):
+    data = 'quantitative'
+    svc = 'precomputed'
+    kernel = fn.elk
+    searcher = gs.GridSearchELK
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
-        'gamma': 2.0 ** np.arange(-12, 1),
         }
 
 
 class K0(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k_0
+    kernel = fn.k0
     searcher = gs.GridSearchK0
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -75,7 +75,7 @@ class K0(Model):
 class K1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k_1
+    kernel = fn.k1
     searcher = gs.GridSearchK1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -93,7 +93,7 @@ class K1(Model):
 class K2(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k_2
+    kernel = fn.k2
     searcher = gs.GridSearchK2
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -110,7 +110,7 @@ class K2(Model):
 class M1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.m_1
+    kernel = fn.m1
     searcher = gs.GridSearchM1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -124,14 +124,14 @@ class M1(Model):
         }
 
 
-class ELK(Model):
+class RBF(Model):
     data = 'quantitative'
-    svc = 'precomputed'
-    kernel = fn.elk
-    searcher = gs.GridSearchELK
+    svc = 'rbf'
+    searcher = gs.GridSearchWrapper
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
+        'gamma': 2.0 ** np.arange(-12, 1),
         }
 
 
-train_test_models = (RBF, K0, K1, K2, M1, ELK)
+train_test_models = (ELK, K0, K1, K2, M1, RBF)
