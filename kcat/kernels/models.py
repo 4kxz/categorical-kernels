@@ -59,7 +59,7 @@ class RBF(Model):
 class K0(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.fast_k0
+    kernel = fn.k_0
     searcher = gs.GridSearchK0
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -75,7 +75,7 @@ class K0(Model):
 class K1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.fast_k1
+    kernel = fn.k_1
     searcher = gs.GridSearchK1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -93,7 +93,7 @@ class K1(Model):
 class K2(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.fast_k2
+    kernel = fn.k_2
     searcher = gs.GridSearchK2
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
@@ -110,7 +110,7 @@ class K2(Model):
 class M1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.m1
+    kernel = fn.m_1
     searcher = gs.GridSearchM1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),

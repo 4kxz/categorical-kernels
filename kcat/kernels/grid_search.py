@@ -87,7 +87,7 @@ class GridSearchK0(GridSearchWrapper):
             for g in self.gamma if uses_gammas else [None]:
                 result = GridSearchCV(**self.gskwargs)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fn.fast_k0(X, X, **params)
+                gram = fn.k_0(X, X, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_score_ = result.best_score_
@@ -97,7 +97,7 @@ class GridSearchK0(GridSearchWrapper):
 
     def predict(self, X):
         Y = self.X
-        gram = fn.fast_k0(X, Y, **self.best_kparams_)
+        gram = fn.k_0(X, Y, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 
@@ -127,7 +127,7 @@ class GridSearchK1(GridSearchWrapper):
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.fast_k1(X, X, Xp, Xp, **params)
+                    gram = fn.k_1(X, X, Xp, Xp, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
@@ -139,7 +139,7 @@ class GridSearchK1(GridSearchWrapper):
         Xp  = self.pgen(X)
         Y = self.X
         Yp = self.pgen(Y)
-        gram = fn.fast_k1(X, Y, Xp, Yp, **self.best_kparams_)
+        gram = fn.k_1(X, Y, Xp, Yp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 
@@ -165,7 +165,7 @@ class GridSearchK2(GridSearchWrapper):
             for g in self.gamma if uses_gammas else [None]:
                 result = GridSearchCV(**self.gskwargs)
                 params = dict(prev=prev, post=post, gamma=g)
-                gram = fn.fast_k2(X, X, Xp, Xp, **params)
+                gram = fn.k_2(X, X, Xp, Xp, **params)
                 result.fit(gram, y)
                 if result.best_score_ >= self.best_score_:
                     self.best_score_ = result.best_score_
@@ -177,7 +177,7 @@ class GridSearchK2(GridSearchWrapper):
         Xp  = self.pgen(X)
         Y = self.X
         Yp = self.pgen(Y)
-        gram = fn.fast_k2(X, Y, Xp, Yp, **self.best_kparams_)
+        gram = fn.k_2(X, Y, Xp, Yp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 

@@ -2,17 +2,8 @@
 kernel functions. The obtained gram matrix can be used to train SVMs
 with scikit-learn.
 
-There are two type of methods in this module. The methods
-:meth:`k_0_univ`, :meth:`k_0_mult`, :meth:`k_0_matrix`,
-:meth:`k_1_univ`, :meth:`k_1_mult`, :meth:`k_1_matrix`,
-are meant to be used for testing purposes.
-They work with arbitrary functions and collections of iterables, they
-can be mixed and swapped to easily test different configurations or
-custom transformation function.
-However, they are very slow when used on large datasets.
-
-The other methods are all prepared to work on numpy arrays and take
-advantage of vectorial operations to speed up computations.
+The methods are all prepared to work on numpy arrays and take advantage
+of vectorial operations to speed up computations.
 """
 
 import numpy as np
@@ -58,120 +49,6 @@ def get_vector_function(name, params=None):
         raise ValueError("Function f2 can't be vectorised")
     else:
         raise ValueError("Invalid function {}".format(name))
-
-
-# Non-Vectorised kernels.
-
-def k0_univ(x, y):
-    """Univariate kernel *K0* between two values.
-
-    Args:
-        x: Category.
-        y: Category.
-
-    Returns:
-        Value of computing k_1^U(x, y).
-    """
-    return 0.0 if x != y else 1.0
-
-def k0_mult(u, v, prev):
-    """Multivariate kernel *K0* between two vectors.
-
-    Args:
-        u: Category vector.
-        v: Category vector.
-        prev (function): Function to transform the univariate kernel.
-
-    Returns:
-        Value of applying the kernel :meth:`k0_univ` between each pair
-        of attributes in *u* and *v*, and then the composition function.
-    """
-    # List comprehension takes care of applying k0 and prev for each element:
-    return np.mean([prev(k0_univ, u[i], v[i]) for i in range(len(u))])
-
-def k0_matrix(X, Y, prev='ident', post='ident', **kwargs):
-    """Computes the gram matrix between *X* and *Y*.
-
-    Args:
-        X: Numpy matrix.
-        Y: Numpy matrix.
-        prev (string): Function to transform the data before composing.
-            Valid values: ``'ident'``, ``'f1'`` or a Python function.
-        post (string): Function to transform the data after composing.
-            Valid values: ``'ident'``, ``'f1'`` or a Python function.
-        gamma (float): Parameter required by ``'f1'``.
-
-    Returns:
-        Gram matrix obtained applying :meth:`k0_mult` between each pair
-        of elements in *X* and *Y*.
-    """
-    prevf = get_function(prev, kwargs)
-    postf =  get_function(post, kwargs)
-    # The gram matrix is computed by iterating each vector in X and Y:
-    G = np.zeros((len(X), len(Y)))
-    for i, u in enumerate(X):
-        for j, v in enumerate(Y):
-            G[i][j] = postf(k0_mult, u, v, prevf)
-    return G
-
-def k1_univ(x, y, h, p):
-    """Univariate kernel *K1*.
-
-    Args:
-        x: Value.
-        y: Value.
-        h (function): Inverting function.
-        p (function): Probability function.
-
-    Returns:
-        Value of computing k_1^U(x, y).
-    """
-    return 0.0 if x != y else h(p(x))
-
-def k1_mult(u, v, h, pgen, prev):
-    """Multivariate kernel *K1*.
-
-    :param u: Data vector.
-    :param v: Data vector.
-    :param h: Inverting function.
-    :param pgen: Probability mass function generator (see
-        :meth:`~kcat.pgen.get_pgen`).
-    :param prev: Function to transform the data before composing.
-
-    :returns: Value of applying the kernel :meth:`k1_univ` between each pair of
-        attributes in *u* and *v*, and then the composition function.
-    """
-    # Compute the kernel applying the previous and composition functions:
-    r = np.mean([prev(k1_univ, u[i], v[i], h, pgen(i)) for i in range(len(u))])
-    return r
-
-def k1_matrix(X, Y, pgen, alpha=1.0, prev='ident', post='ident', **kwargs):
-    """Computes the gram matrix.
-
-    :param X: Data matrix where each row is an example and each column a
-        categorical attribute.
-    :param Y: Data matrix.
-    :param pgen: Probability mass function generator (see
-        :meth:`~kcat.pgen.get_pgen`).
-    :param alpha: Parameter for the inverting function *h*.
-    :param prev: Function to transform the data before composing. Accepts
-        ``'ident'``, ``'f1'`` or a Python function.
-    :param post: Function to transform the data after composing. Accepts
-        ``'ident'``, ``'f1'``,  ``'f2'`` or a Python function.
-    :param gamma: (optional) Parameter required by ``'f1'`` and  ``'f2'``.
-
-    :returns: Gram matrix obtained applying :meth:`k1_mult` between each pair
-        of elements in *X* and *Y*.
-    """
-    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    prevf = get_function(prev, kwargs)
-    postf = get_function(post, kwargs)
-    # Compute the kernel matrix:
-    G = np.zeros((len(X), len(Y)))
-    for i, u in enumerate(X):
-        for j, v in enumerate(Y):
-            G[i][j] = postf(k1_mult, u, v, h, pgen, prevf)
-    return G
 
 
 # Vectorised kernel functions
