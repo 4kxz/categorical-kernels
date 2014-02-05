@@ -202,7 +202,7 @@ class GridSearchM1(GridSearchWrapper):
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.m1(X, X, Xp, Xp, **params)
+                    gram = fn.m_1(X, X, Xp, Xp, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
@@ -214,7 +214,7 @@ class GridSearchM1(GridSearchWrapper):
         Xp  = self.pgen(X)
         Y = self.X
         Yp = self.pgen(Y)
-        gram = fn.m1(X, Y, Xp, Yp, **self.best_kparams_)
+        gram = fn.m_1(X, Y, Xp, Yp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 
