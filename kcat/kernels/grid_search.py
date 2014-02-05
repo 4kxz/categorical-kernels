@@ -17,7 +17,7 @@ from ..utils import pgen
 
 
 class GridSearchWrapper:
-    """Base class to extend in custom grid searches.
+    """Base class to do custom grid searches.
 
     Kernel specific keyword arguments (*alpha*, *prev*, *post*, etc.)
     should be defined in the subclasses and the rest (*estimator*, *cv*,
@@ -79,7 +79,6 @@ class GridSearchK0(GridSearchWrapper):
         super().__init__(**kwargs)
 
     def fit(self, X, y):
-        """Fit the model to the data matrix *X* and class vector *y*."""
         self.X = X
         # Only 'f1' and 'f2' use gammas, no need to search all the
         # permutations.
@@ -117,12 +116,6 @@ class GridSearchK1(GridSearchWrapper):
         super().__init__(**kwargs)
 
     def fit(self, X, y):
-        """Fit the model to the data matrix *X* and class vector *y*.
-
-        :param pgen: A probability distribution.
-
-        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
-        """
         self.X = X
         self.pgen = pgen(X)
         Xp = self.pgen(X)
@@ -162,11 +155,6 @@ class GridSearchK2(GridSearchWrapper):
         super().__init__(**kwargs)
 
     def fit(self, X, y):
-        """Fit the model to the data matrix *X* and class vector *y*.
-        :param pgen: A probability distribution.
-
-        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
-        """
         self.X = X
         self.pgen = pgen(X)
         Xp = self.pgen(X)
@@ -205,11 +193,6 @@ class GridSearchM1(GridSearchWrapper):
         super().__init__(**kwargs)
 
     def fit(self, X, y):
-        """Fit the model to the data matrix *X* and class vector *y*.
-        :param pgen: A probability distribution.
-
-        About *pgen*, see :meth:`~kcat.pgen.get_pgen`.
-        """
         self.X = X
         self.pgen = pgen(X)
         Xp = self.pgen(X)
@@ -219,7 +202,7 @@ class GridSearchM1(GridSearchWrapper):
                 for a in self.alpha:
                     result = GridSearchCV(**self.gskwargs)
                     params = dict(alpha=a, prev=prev, post=post, gamma=g)
-                    gram = fn.fast_m1(X, X, Xp, Xp, **params)
+                    gram = fn.m1(X, X, Xp, Xp, **params)
                     result.fit(gram, y)
                     if result.best_score_ >= self.best_score_:
                         self.best_score_ = result.best_score_
@@ -231,7 +214,7 @@ class GridSearchM1(GridSearchWrapper):
         Xp  = self.pgen(X)
         Y = self.X
         Yp = self.pgen(Y)
-        gram = fn.fast_m1(X, Y, Xp, Yp, **self.best_kparams_)
+        gram = fn.m1(X, Y, Xp, Yp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
 
@@ -239,7 +222,6 @@ class GridSearchELK(GridSearchWrapper):
     """Finds the best parameters for *ELK*."""
 
     def fit(self, X, y):
-        """Fit the model to the data matrix *X* and class vector *y*."""
         self.X = X
         result = GridSearchCV(**self.gskwargs)
         gram = fn.elk(X, X)

@@ -110,7 +110,7 @@ class K2(Model):
 class M1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.fast_m1
+    kernel = fn.m1
     searcher = gs.GridSearchM1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
