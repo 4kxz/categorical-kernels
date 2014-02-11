@@ -1,12 +1,5 @@
-"""This module has a helper class to avoid boilerplate code to train
-and test the various models.
-
-Instead of having to write a script each time, the same can be achieved
-by changing the attributes of the helper class.
-
-For example, in order to change the default search space for grid search
-with the kernel k1 it would suffice to change the *default_params*
-attribute in K1.
+"""This module contains helper classes to avoid boilerplate code to
+train and test the various models.
 """
 
 import collections
@@ -14,32 +7,36 @@ import collections
 import numpy as np
 from sklearn import svm
 
-from . import functions as fn
-from . import grid_search as gs
+from . import functions as kf
+from . import search as ks
 from ..utils import get_pgen
 
+# Nicer output in Sphinx
 np.set_printoptions(precision=2, threshold=4, edgeitems=2)
 
-# Training boilerplate
 
 class Model:
     svc = None
     kernel = None
     data = None
     searcher = None
-    default_params = None
+    default_params = {}
 
-    @classmethod
-    def train(cls, cv, X, y, **kwargs):
-        X = X['categorical'] if cls.data == 'categorical' else X['default']
-        clf = svm.SVC(cls.svc, max_iter=2**20)
-        search = cls.searcher(estimator=clf, cv=cv, **cls.default_params)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # We don't want instances overwritting the class default params.
+        self.default_params = self.default_params.copy()
+        self.name = self.__class__.__name__
+
+    def train(self, cv, X, y, **kwargs):
+        X = X['categorical'] if self.data == 'categorical' else X['default']
+        clf = svm.SVC(self.svc, max_iter=2**20)
+        search = self.searcher(estimator=clf, cv=cv, **self.default_params)
         search.fit(X=X, y=y, **kwargs)
         return search
 
-    @classmethod
-    def test(cls, search, X, y, **kwargs):
-        X = X['categorical'] if cls.data == 'categorical' else X['default']
+    def test(self, search, X, y, **kwargs):
+        X = X['categorical'] if self.data == 'categorical' else X['default']
         prediction = search.predict(X=X)
         results = {'test_score': np.mean(prediction == y)}
         results.update(search.details)
@@ -49,8 +46,8 @@ class Model:
 class ELK(Model):
     data = 'quantitative'
     svc = 'precomputed'
-    kernel = fn.elk
-    searcher = gs.GridSearchELK
+    kernel = kf.elk
+    searcher = ks.SearchELK
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         }
@@ -59,8 +56,8 @@ class ELK(Model):
 class K0(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k0
-    searcher = gs.GridSearchK0
+    kernel = kf.k0
+    searcher = ks.SearchK0
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'functions': [
@@ -75,8 +72,8 @@ class K0(Model):
 class K1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k1
-    searcher = gs.GridSearchK1
+    kernel = kf.k1
+    searcher = ks.SearchK1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'alpha': 1.5 ** np.arange(-4, 3),
@@ -93,8 +90,8 @@ class K1(Model):
 class K2(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.k2
-    searcher = gs.GridSearchK2
+    kernel = kf.k2
+    searcher = ks.SearchK2
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'functions': [
@@ -110,8 +107,8 @@ class K2(Model):
 class M1(Model):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = fn.m1
-    searcher = gs.GridSearchM1
+    kernel = kf.m1
+    searcher = ks.SearchM1
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'alpha': 1.5 ** np.arange(-4, 3),
@@ -127,11 +124,11 @@ class M1(Model):
 class RBF(Model):
     data = 'quantitative'
     svc = 'rbf'
-    searcher = gs.GridSearchWrapper
+    searcher = ks.SearchBase
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'gamma': 2.0 ** np.arange(-12, 1),
         }
 
 
-train_test_models = (ELK, K0, K1, K2, M1, RBF)
+DEFAULT_MODELS = (ELK, K0, K1, K2, M1, RBF)

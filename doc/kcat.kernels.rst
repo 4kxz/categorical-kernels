@@ -6,7 +6,7 @@ This package contains all the kernel related modules.
 The core of the package is in the :mod:`kcat.kernels.functions` module
 which contains the kernel functions.
 
-The :mod:`kcat.kernels.grid_search` and :mod:`kcat.kernels.models`
+The :mod:`kcat.kernels.search` and :mod:`kcat.kernels.models`
 modules contain additional code to use the kernels with the scikit-learn
 environment and run tests.
 
@@ -27,32 +27,32 @@ kcat.kernels.functions module
 .. autofunction:: kcat.kernels.functions.m1
 
 
-kcat.kernels.grid_search module
+kcat.kernels.search module
 -------------------------------
 
-.. automodule:: kcat.kernels.grid_search
+.. automodule:: kcat.kernels.search
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchWrapper
+.. autoclass:: kcat.kernels.search.SearchBase
     :members:
     :exclude-members: __doc__, __module__
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchELK
+.. autoclass:: kcat.kernels.search.SearchELK
     :members:
     :exclude-members: __doc__, __module__
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchK0
+.. autoclass:: kcat.kernels.search.SearchK0
     :members:
     :exclude-members: __doc__, __module__
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchK1
+.. autoclass:: kcat.kernels.search.SearchK1
     :members:
     :exclude-members: __doc__, __module__
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchK2
+.. autoclass:: kcat.kernels.search.SearchK2
     :members:
     :exclude-members: __doc__, __module__
 
-.. autoclass:: kcat.kernels.grid_search.GridSearchM1
+.. autoclass:: kcat.kernels.search.SearchM1
     :members:
     :exclude-members: __doc__, __module__
 

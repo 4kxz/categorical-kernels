@@ -61,7 +61,8 @@ def elk(X, Y):
         X: Numpy matrix.
         Y: Numpy matrix.
 
-    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
     """
     xm, xn = X.shape
     ym, yn = Y.shape
@@ -86,7 +87,8 @@ def k0(X, Y, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -119,7 +121,8 @@ def k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -167,7 +170,8 @@ def k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.
@@ -215,7 +219,8 @@ def m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
             Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
         kwargs (dict): Arguments required by *prev* or *post*.
 
-    :returns: Numpy matrix of size :math:`m_X \\times m_Y`.
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
 
     Since the code is vectorised any function passed in *prev* or *post*
     must work on numpy arrays.

@@ -24,6 +24,7 @@ kcat.datasets module
 --------------------
 
 .. automodule:: kcat.datasets
+    :members:
     :exclude-members: __doc__, __module__
 
 
@@ -31,3 +32,4 @@ kcat.utils module
 -----------------
 
 .. automodule:: kcat.utils
+    :members:

@@ -50,16 +50,18 @@ class BaseRunner:
         cvf = cv.StratifiedKFold(y_train, kwargs['folds'])
         # Test preformance with every kernel:
         evaluation = {}
-        for kernel_model in md.train_test_models:
+        for kernel_model in md.DEFAULT_MODELS:
+            # Instantiate the model:
+            model = kernel_model()
             # Train the model:
             if self.verbose:
-                print('Training {}...'.format(kernel_model.__name__))
-            model = kernel_model.train(cv=cvf, X=X_train, y=y_train)
+                print('Training {}...'.format(model.name))
+            best_fit = model.train(cv=cvf, X=X_train, y=y_train)
             # Test the model:
             if self.verbose:
-                print('Testing {}...'.format(kernel_model.__name__))
-            results = kernel_model.test(model, X=X_test, y=y_test)
-            evaluation[kernel_model.__name__] = results
+                print('Testing {}...'.format(model.name))
+            results = model.test(best_fit, X=X_test, y=y_test)
+            evaluation[model.name] = results
         # Update results:
         self.results.append({
             'timestamp': time.asctime(),
