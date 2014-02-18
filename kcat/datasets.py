@@ -25,22 +25,28 @@ class Dataset:
 class Synthetic(Dataset):
     """Generates a random data set.
 
-    :param m: Number of examples to generate.
-    :type m: int
-    :param n: Number of attributes for each example.
-    :type n: int
-    :param c: Number of classes.
-    :type c: int
-    :param p: Change probability of class-unique attributes.
-    :type p: float
+    Args:
+        m (int): Number of examples to generate.
+        n (int): Number of attributes for each example.
+        c (int): Number of classes.
+        p (float): Adjust frequency of random values.
 
-    The effect of the *p* according to its value:
+    The effect of *p* according to its value:
 
-    - *p* close to 0: Class attributes almost never happen (random/harder).
-    - *p* close to 1: Class attributes happen as often as the rest (easier).
+    - *p* close to 0: Class attributes almost never happen.
+        The dataset is completely random and therefore hard to classify.
+    - *p* close to 1: Class attributes happen as often as random attributes.
+        The dataset has fewer random values and is easier to classify.
 
-    :returns: - A matrix of size :math:`m \\times n` with the dataset.
-              - An array with the class of the `m` examples.
+    Intermediate values of *p* generate the most interesting datasets to
+    use in classification problems. The parameter can be adjusted to make
+    the problem harder or easier.
+
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self, m, n=25, c=4, p=0.5, random_state=None):
@@ -83,14 +89,18 @@ class Synthetic(Dataset):
 class GMonks(Dataset):
     """Generates a random data set.
 
-    :param m: Number of examples to generate.
-    :param d: Number of blocks of features for each example.
+    Args:
+        m: Number of examples to generate.
+        d: Number of blocks of features for each example.
 
     Each block is a set of six features generated according to the description
     in the original monks problem.
 
-    :returns: - A matrix of size :math:`m \\times (6d)` with the dataset.
-              - An array with the class of the `m` examples.
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self, m, d=2, random_state=None):
@@ -121,13 +131,16 @@ class GMonks(Dataset):
         return X, dummy_variable(X), y
 
 
-class promoter(Dataset):
-    """Downloads the promoter gene sequences dataset and loads them into a data
-    set. `Source <http://archive.ics.uci.edu/ml/datasets/Molecular+Biology+%28\
-    Promoter+Gene+Sequences%29>`__.
+class Promoter(Dataset):
+    """Downloads the promoter gene sequences dataset and loads them into
+    a data set. `Source <http://archive.ics.uci.edu/ml/datasets/\
+    Molecular+Biology+%28Promoter+Gene+Sequences%29>`__.
 
-    :returns: - A matrix of size :math:`106 \\times 57` with the dataset.
-              - An array with the class of the 106 examples.
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self):
@@ -146,12 +159,15 @@ class promoter(Dataset):
 
 
 class Splice(Dataset):
-    """Downloads the splice junction gene sequences dataset and loads them into
-    a data set. `Source <http://archive.ics.uci.edu/ml/datasets/Molecular+Biol\
-    ogy+%28Splice-junction+Gene+Sequences%29>`__.
+    """Downloads the splice junction gene sequences dataset and loads them
+    into a data set. `Source <http://archive.ics.uci.edu/ml/\
+    datasets/Molecular+Biology+%28Splice-junction+Gene+Sequences%29>`__.
 
-    :returns: - A matrix of size :math:`3190 \\times 60` with the dataset.
-              - An array with the class of the 3190 examples.
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self):
@@ -172,11 +188,14 @@ class Splice(Dataset):
 
 class Soybean(Dataset):
     """Downloads the soybean dataset. Includes train and test.
-    The last four classes are ignored (see source for explanation). `Source <h\
-    ttp://archive.ics.uci.edu/ml/datasets/Soybean+%28Large%29>`__.
+    The last four classes are ignored (see source for explanation).
+    `Source <http://archive.ics.uci.edu/ml/datasets/Soybean+%28Large%29>`__.
 
-    :returns: - A matrix of size :math:`630 \\times ?` with the dataset.
-              - An array with the class of the 630 examples.
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self):
@@ -214,8 +233,11 @@ class Mushroom(Dataset):
     """Downloads the mushroom dataset.
     `Source <http://archive.ics.uci.edu/ml/datasets/Mushroom>`__.
 
-    :returns: - A matrix of size :math:`8124 \\times 22` with the dataset.
-              - An array with the class of the 8124 examples.
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
     """
 
     def generate(self):
@@ -234,7 +256,13 @@ class Mushroom(Dataset):
 
 class WebKB(Dataset):
     """Downloads the webkb dataset.
-    `Source <http://web.ist.utl.pt/~acardoso/datasets/>`__.
+    `Source <http://web.ist.utl.pt~acardoso/datasets/>`__.
+
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the frequency for each word.
+            - An array with the class of the examples.
     """
 
     def generate(self):
