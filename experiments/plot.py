@@ -29,12 +29,12 @@ parser.add_argument(
 parser.add_argument(
     '-k', '--kernel',
     default=None,
-    help="filter results and plot only those with a specific kernel",
+    help="filter results to show only one kernel",
     )
 parser.add_argument(
     '-d', '--dataset',
     default=None,
-    help="filter results and plot only those with a specific dataset",
+    help="filter results to show only dataset",
     )
 parser.add_argument(
     '-g', '--group-by',
