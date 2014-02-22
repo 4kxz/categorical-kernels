@@ -13,7 +13,7 @@ from . import functions as kf
 from ..utils import pgen
 
 
-class SearchBase:
+class BaseSearch:
     """Base class. Can be extended to do custom searches.
 
     Any subclass should deal with kernel specific keyword arguments such
@@ -70,7 +70,7 @@ class SearchBase:
         return details
 
 
-class SearchK0(SearchBase):
+class SearchK0(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.k0`.
 
     Args:
@@ -106,7 +106,7 @@ class SearchK0(SearchBase):
         return self.best_estimator_.predict(gram)
 
 
-class SearchK1(SearchBase):
+class SearchK1(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.k1`.
 
     Args:
@@ -149,7 +149,7 @@ class SearchK1(SearchBase):
         return self.best_estimator_.predict(gram)
 
 
-class SearchK2(SearchBase):
+class SearchK2(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.k2`.
 
     Args:
@@ -189,7 +189,7 @@ class SearchK2(SearchBase):
         return self.best_estimator_.predict(gram)
 
 
-class SearchM1(SearchBase):
+class SearchM1(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.m1`.
 
     Args:
@@ -230,7 +230,7 @@ class SearchM1(SearchBase):
         return self.best_estimator_.predict(gram)
 
 
-class SearchELK(SearchBase):
+class SearchELK(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.elk`.
     """
 

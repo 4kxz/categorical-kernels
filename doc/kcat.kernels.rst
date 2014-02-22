@@ -32,7 +32,7 @@ kcat.kernels.search module
 
 .. automodule:: kcat.kernels.search
 
-.. autoclass:: kcat.kernels.search.SearchBase
+.. autoclass:: kcat.kernels.search.BaseSearch
     :members:
     :exclude-members: __doc__, __module__
 
@@ -62,7 +62,7 @@ kcat.kernels.models module
 
 .. automodule:: kcat.kernels.models
 
-.. autoclass:: kcat.kernels.models.Model
+.. autoclass:: kcat.kernels.models.BaseModel
     :members:
     :undoc-members:
     :exclude-members: __doc__, __module__, kernel, searcher
