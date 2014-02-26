@@ -230,6 +230,89 @@ class SearchM1(BaseSearch):
         return self.best_estimator_.predict(gram)
 
 
+class SearchM2(BaseSearch):
+    """Finds the best parameters for :meth:`kcat.kernels.functoins.m1`.
+
+    Args:
+        alpha: A list of floats.
+        functions: A list with tuples of the form ('prev', 'post').
+        gamma: A list of float values.
+    """
+
+    def __init__(self, alpha, functions, gamma, **kwargs):
+        self.alpha = alpha
+        self.functions = functions
+        self.gamma = gamma
+        super().__init__(**kwargs)
+
+    def fit(self, X, y):
+        self.X = X
+        self.pgen = pgen(X)
+        Xp = self.pgen(X)
+        for prev, post in self.functions:
+            uses_gammas = prev == 'f1' or post == 'f1'
+            for g in self.gamma if uses_gammas else [None]:
+                for a in self.alpha:
+                    search = GridSearchCV(**self.gskwargs)
+                    params = dict(alpha=a, prev=prev, post=post, gamma=g)
+                    gram = kf.m2(X, X, Xp, Xp, **params)
+                    search.fit(gram, y)
+                    if search.best_score_ >= self.best_score_:
+                        self.best_score_ = search.best_score_
+                        self.best_params_ = search.best_params_
+                        self.best_kparams_ = params
+                        self.best_estimator_ = search.best_estimator_
+
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = kf.m2(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
+
+
+class SearchM3(BaseSearch):
+    """Finds the best parameters for :meth:`kcat.kernels.functoins.m1`.
+
+    Args:
+        alpha: A list of floats.
+        functions: A list with tuples of the form ('prev', 'post').
+        gamma: A list of float values.
+    """
+
+    def __init__(self, alpha, functions, gamma, **kwargs):
+        self.alpha = alpha
+        self.functions = functions
+        self.gamma = gamma
+        super().__init__(**kwargs)
+
+    def fit(self, X, y):
+        self.X = X
+        self.pgen = pgen(X)
+        Xp = self.pgen(X)
+        for prev, post in self.functions:
+            uses_gammas = prev == 'f1' or post == 'f1'
+            for g in self.gamma if uses_gammas else [None]:
+                for a in self.alpha:
+                    search = GridSearchCV(**self.gskwargs)
+                    params = dict(alpha=a, prev=prev, post=post, gamma=g)
+                    gram = kf.m3(X, X, Xp, Xp, **params)
+                    search.fit(gram, y)
+                    if search.best_score_ >= self.best_score_:
+                        self.best_score_ = search.best_score_
+                        self.best_params_ = search.best_params_
+                        self.best_kparams_ = params
+                        self.best_estimator_ = search.best_estimator_
+
+    def predict(self, X):
+        Xp  = self.pgen(X)
+        Y = self.X
+        Yp = self.pgen(Y)
+        gram = kf.m3(X, Y, Xp, Yp, **self.best_kparams_)
+        return self.best_estimator_.predict(gram)
+
+
+
 class SearchELK(BaseSearch):
     """Finds the best parameters for :meth:`kcat.kernels.functoins.elk`.
     """

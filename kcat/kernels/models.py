@@ -121,6 +121,16 @@ class M1(BaseModel):
         }
 
 
+class M2(M1):
+    kernel = kf.m2
+    searcher = ks.SearchM2
+
+
+class M3(M1):
+    kernel = kf.m3
+    searcher = ks.SearchM3
+
+
 class RBF(BaseModel):
     data = 'quantitative'
     svc = 'rbf'
@@ -131,4 +141,4 @@ class RBF(BaseModel):
         }
 
 
-DEFAULT_MODELS = (ELK, K0, K1, K2, M1, RBF)
+DEFAULT_MODELS = (ELK, K0, K1, K2, M1, M2, M3, RBF)
