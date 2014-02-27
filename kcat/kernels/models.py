@@ -131,6 +131,11 @@ class M3(M1):
     searcher = ks.SearchM3
 
 
+class M4(M1):
+    kernel = kf.m4
+    searcher = ks.SearchM4
+
+
 class RBF(BaseModel):
     data = 'quantitative'
     svc = 'rbf'
@@ -141,4 +146,4 @@ class RBF(BaseModel):
         }
 
 
-DEFAULT_MODELS = (ELK, K0, K1, K2, M1, M2, M3, RBF)
+DEFAULT_MODELS = (ELK, K0, K1, K2, M1, M2, M3, M4, RBF)
