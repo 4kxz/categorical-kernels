@@ -7,7 +7,6 @@ import collections
 import numpy as np
 from sklearn import svm
 
-from . import functions as kf
 from . import search as ks
 from ..utils import get_pgen
 
@@ -15,9 +14,8 @@ from ..utils import get_pgen
 np.set_printoptions(precision=2, threshold=4, edgeitems=2)
 
 
-class BaseModel:
+class BaseHelper:
     svc = None
-    kernel = None
     data = None
     searcher = None
     default_params = {}
@@ -43,21 +41,19 @@ class BaseModel:
         return results
 
 
-class ELK(BaseModel):
+class ELK(BaseHelper):
     data = 'quantitative'
     svc = 'precomputed'
-    kernel = kf.elk
-    searcher = ks.SearchELK
+    searcher = ks.ELKSearch
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         }
 
 
-class K0(BaseModel):
+class K0(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = kf.k0
-    searcher = ks.SearchK0
+    searcher = ks.K0Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'functions': [
@@ -69,11 +65,10 @@ class K0(BaseModel):
         }
 
 
-class K1(BaseModel):
+class K1(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = kf.k1
-    searcher = ks.SearchK1
+    searcher = ks.K1Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'alpha': 1.5 ** np.arange(-4, 3),
@@ -87,11 +82,10 @@ class K1(BaseModel):
         }
 
 
-class K2(BaseModel):
+class K2(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = kf.k2
-    searcher = ks.SearchK2
+    searcher = ks.K2Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'functions': [
@@ -104,11 +98,10 @@ class K2(BaseModel):
         }
 
 
-class M1(BaseModel):
+class M1(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    kernel = kf.m1
-    searcher = ks.SearchM1
+    searcher = ks.M1Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'alpha': 1.5 ** np.arange(-4, 3),
@@ -122,28 +115,25 @@ class M1(BaseModel):
 
 
 class M2(M1):
-    kernel = kf.m2
-    searcher = ks.SearchM2
+    searcher = ks.M2Search
 
 
 class M3(M1):
-    kernel = kf.m3
-    searcher = ks.SearchM3
+    searcher = ks.M3Search
 
 
 class M4(M1):
-    kernel = kf.m4
-    searcher = ks.SearchM4
+    searcher = ks.M4Search
 
 
-class RBF(BaseModel):
+class RBF(BaseHelper):
     data = 'quantitative'
     svc = 'rbf'
-    searcher = ks.BaseSearch
+    searcher = ks.RBFSearch
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
         'gamma': 2.0 ** np.arange(-12, 1),
         }
 
 
-DEFAULT_MODELS = (ELK, K0, K1, K2, M1, M2, M3, M4, RBF)
+DEFAULT_MODELS = (RBF, K0, K1, K2, ELK, M1, M2, M3, M4)

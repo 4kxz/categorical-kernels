@@ -5,8 +5,7 @@ import numpy as np
 from sklearn import cross_validation as cv
 
 from kcat import datasets as ds
-from kcat.kernels import models as md
-from kcat.utils import get_pgen
+from kcat.kernels import helpers as kh
 
 
 class BaseRunner:
@@ -50,7 +49,7 @@ class BaseRunner:
         cvf = cv.StratifiedKFold(y_train, kwargs['folds'])
         # Test preformance with every kernel:
         evaluation = {}
-        for kernel_model in md.DEFAULT_MODELS:
+        for kernel_model in kh.DEFAULT_MODELS:
             # Instantiate the model:
             model = kernel_model()
             # Train the model:
