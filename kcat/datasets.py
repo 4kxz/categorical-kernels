@@ -1,9 +1,29 @@
-import urllib.request
+import csv
+import io
+import os
+import sys
+# Workaround for domino
+try:
+    from urllib.request import urlopen
+except:
+    pass
 
 import numpy as np
+import pandas as pd
 from sklearn import cross_validation as cv
+from sklearn import feature_extraction as fe
 
 from .utils import dummy_variable
+
+
+DATA_DIR = 'data'
+
+def data_path(filename):
+    module_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(module_dir, DATA_DIR, filename)
+
+def dummy(values):
+    return fe.DictVectorizer().fit_transform(values).toarray()
 
 
 class Dataset:
@@ -144,7 +164,7 @@ class Promoter(Dataset):
     """
 
     def generate(self):
-        with urllib.request.urlopen(
+        with urlopen(
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'molecular-biology/promoter-gene-sequences/promoters.data'
         ) as data:
@@ -171,7 +191,7 @@ class Splice(Dataset):
     """
 
     def generate(self):
-        with urllib.request.urlopen(
+        with urlopen(
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'molecular-biology/splice-junction-gene-sequences/splice.data'
         ) as data:
@@ -202,7 +222,7 @@ class Soybean(Dataset):
         X, y = [], []
         encode = lambda x: 0 if x == '?' else int(x) + 1
         train_size = 0
-        with urllib.request.urlopen(
+        with urlopen(
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'soybean/soybean-large.data'
         ) as data:
@@ -214,7 +234,7 @@ class Soybean(Dataset):
                 if train_size == 290:
                     break
         test_size = 0
-        with urllib.request.urlopen(
+        with urlopen(
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'soybean/soybean-large.test'
         ) as data:
@@ -242,7 +262,7 @@ class Mushroom(Dataset):
 
     def generate(self):
         X, y = [], []
-        with urllib.request.urlopen(
+        with urlopen(
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'mushroom/agaricus-lepiota.data'
         ) as data:
@@ -252,6 +272,112 @@ class Mushroom(Dataset):
                 X.append([ord(x.strip()) for x in seq[1:]])
         X, y = np.array(X), np.array(y)
         return X, dummy_variable(X), y
+
+
+class CarEvaluation(Dataset):
+    """Derived from simple hierarchical decision model, this database
+    may be useful for testing constructive induction and structure
+    discovery methods.
+    `Source <https://archive.ics.uci.edu/ml/datasets/Car+Evaluation>`__.
+
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
+    """
+
+    def generate(self):
+        path = 'https://archive.ics.uci.edu/ml/machine-learning-databases/car/car.data'
+        names = *attr, cls = [
+            'buying',
+            'maint',
+            'doors',
+            'persons',
+            'lug_boot',
+            'safety',
+            'class',
+        ]
+        df = pd.read_csv(filepath_or_buffer=path, names=names)
+        X = df[attr].as_matrix().astype(str)
+        Z = dummy(df[attr].T.to_dict().values())
+        y = df[cls].values.astype(str)
+        return X, Z, y
+
+
+class CongressionalVoting(Dataset):
+    """1984 United States Congressional Voting Records. Classify as
+    Republican or Democrat.
+    `Source <http://archive.ics.uci.edu/ml/datasets/\
+    Congressional+Voting+Records>`__.
+
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
+    """
+
+    def generate(self):
+        path = 'http://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data'
+        names = cls, *attr = [
+            'class',
+            'handicapped-infants',
+            'water-project-cost-sharing',
+            'adoption-of-the-budget-resolution',
+            'physician-fee-freeze',
+            'el-salvador-aid',
+            'religious-groups-in-schools',
+            'anti-satellite-test-ban',
+            'aid-to-nicaraguan-contras',
+            'mx-missile',
+            'immigration',
+            'synfuels-corporation-cutback',
+            'education-spending',
+            'superfund-right-to-sue',
+            'crime',
+            'duty-free-exports',
+            'export-administration-act-south-africa',
+            ]
+        df = pd.read_csv(filepath_or_buffer=path, names=names)
+        X = df[attr].as_matrix().astype(str)
+        Z = dummy(df[attr].T.to_dict().values())
+        y = df[cls].values.astype(str)
+        return X, Z, y
+
+
+class TicTacToe(Dataset):
+    """Binary classification task on possible configurations of
+    tic-tac-toe game.
+    `Source <http://archive.ics.uci.edu/ml/datasets/\
+    Tic-Tac-Toe+Endgame>`__.
+
+    Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
+    """
+
+    def generate(self):
+        path = 'http://archive.ics.uci.edu/ml/machine-learning-databases/tic-tac-toe/tic-tac-toe.data'
+        names = *attr, cls = [
+            'top-left-square',
+            'top-middle-square',
+            'top-right-square',
+            'middle-left-square',
+            'middle-middle-square',
+            'middle-right-square',
+            'bottom-left-square',
+            'bottom-middle-square',
+            'bottom-right-square',
+            'class',
+            ]
+        df = pd.read_csv(filepath_or_buffer=path, names=names)
+        X = df[attr].as_matrix().astype(str)
+        Z = dummy(df[attr].T.to_dict().values())
+        y = df[cls].values.astype(str)
+        return X, Z, y
 
 
 class WebKB(Dataset):
@@ -267,7 +393,7 @@ class WebKB(Dataset):
 
     def generate(self):
         X, y, ref, index = [], [], [], {}
-        with urllib.request.urlopen(
+        with urlopen(
             'http://localhost:8000/kcat/data/webkb-stemmed.txt'
         ) as data:
             for line in data:
