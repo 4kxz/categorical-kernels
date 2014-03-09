@@ -81,7 +81,8 @@ if args.dataset is not None:
 fig = plt.figure()
 groups = [args.group_by, 'train_error', 'test_error']
 df.loc[:, groups].boxplot(by=args.group_by)
-plt.ylim(0, 1)
+ya, yb = plt.ylim()
+plt.ylim(0, yb)
 plt.savefig('{}-train-test.png'.format(args.output))
 
 # Print count for each group.
