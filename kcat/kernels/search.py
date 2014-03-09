@@ -255,5 +255,16 @@ class M4Search(K1Search):
     kernel_function = kf.m4
 
 
+class M5Search(K1Search):
+    """Finds the best parameters for :meth:`kcat.kernels.functions.m5`.
+
+    Args:
+        alpha: A list of floats.
+        functions: A list with tuples of the form ('prev', 'post').
+        gamma: A list of float values.
+    """
+    kernel_function = kf.m5
+
+
 class RBFSearch(BaseSearch):
     pass

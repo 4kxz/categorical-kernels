@@ -126,6 +126,10 @@ class M4(M1):
     searcher = ks.M4Search
 
 
+class M5(M1):
+    searcher = ks.M5Search
+
+
 class RBF(BaseHelper):
     data = 'quantitative'
     svc = 'rbf'
