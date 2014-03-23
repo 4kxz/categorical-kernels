@@ -203,7 +203,7 @@ def k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
-def m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+def m3(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_1` between each pair of elements in :math:`X` and :math:`Y`.
 
@@ -241,88 +241,6 @@ def m1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         G[i, :] = 2.0 * np.sum(Xi, axis=1) / np.sum(Xq, axis=1)
     return postf(G)
 
-def m2(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
-    """Computes a matrix with the values of applying the kernel
-    :math:`m_2` between each pair of elements in :math:`X` and :math:`Y`.
-
-    Args:
-        X: Numpy matrix.
-        Y: Numpy matrix.
-        Xp: Numpy matrix with the probabilities of each category in *X*.
-        Yp: Numpy matrix with the probabilities of each category in *Y*.
-        alpha (float): Argument for the inverting function *h*.
-        prev (string): Function to transform the data before composing.
-            Values: ``'ident'``, ``'f1'`` or a function.
-        post (string): Function to transform the data after composing.
-            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
-        kwargs (dict): Arguments required by *prev* or *post*.
-
-    Return:
-        Numpy matrix of size :math:`m_X \\times m_Y`.
-
-    Since the code is vectorised any function passed in *prev* or *post*
-    must work on numpy arrays.
-    """
-    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    prevf = get_vector_function(prev, kwargs)
-    postf = get_vector_function(post, kwargs)
-    xm, xn = X.shape
-    ym, yn = Y.shape
-    Xp = h(Xp)
-    Yp = h(Yp)
-    G = np.zeros((xm, ym))
-    for i in range(xm):
-        I = np.tile(X[i], (ym, 1))
-        Ip = np.tile(Xp[i], (ym, 1))
-        E = I == Y
-        a = 2.0 * np.sum(prevf(Ip * E), axis=1)
-        N = I != Y
-        b = 2.0 * np.sum(prevf(Ip * N) + prevf(Yp * N), axis=1)
-        G[i, :] = a / (a + b)
-    return postf(G)
-
-
-def m3(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
-    """Computes a matrix with the values of applying the kernel
-    :math:`m_3` between each pair of elements in :math:`X` and :math:`Y`.
-
-    Args:
-        X: Numpy matrix.
-        Y: Numpy matrix.
-        Xp: Numpy matrix with the probabilities of each category in *X*.
-        Yp: Numpy matrix with the probabilities of each category in *Y*.
-        alpha (float): Argument for the inverting function *h*.
-        prev (string): Function to transform the data before composing.
-            Values: ``'ident'``, ``'f1'`` or a function.
-        post (string): Function to transform the data after composing.
-            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
-        kwargs (dict): Arguments required by *prev* or *post*.
-
-    Return:
-        Numpy matrix of size :math:`m_X \\times m_Y`.
-
-    Since the code is vectorised any function passed in *prev* or *post*
-    must work on numpy arrays.
-    """
-    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
-    prevf = get_vector_function(prev, kwargs)
-    postf = get_vector_function(post, kwargs)
-    xm, xn = X.shape
-    ym, yn = Y.shape
-    Xp = h(Xp)
-    Yp = h(Yp)
-    G = np.zeros((xm, ym))
-    for i in range(xm):
-        I = np.tile(X[i], (ym, 1))
-        Ip = np.tile(Xp[i], (ym, 1))
-        E = I == Y
-        a = 2.0 * np.sum(prevf(Ip * E), axis=1)
-        N = I != Y
-        b = 0.5 * np.sum(prevf(Ip * N) + prevf(Yp * N), axis=1)
-        G[i, :] = a / (a + b)
-    return postf(G)
-
-
 def m4(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
@@ -356,14 +274,15 @@ def m4(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     for i in range(xm):
         I = np.tile(X[i], (ym, 1))
         Ip = np.tile(Xp[i], (ym, 1))
-        E = I == Y
-        a = 2.0 * np.sum(prevf(Ip * E), axis=1)
-        N = I != Y
-        b = np.sum(prevf(Ip * N) + prevf(Yp * N), axis=1)
-        c = np.sum(prevf(Ip) + prevf(Yp), axis=1)
-        G[i, :] = (a - b) / c
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        apd = a + d
+        G[i, :] = apd / (apd + b + c)
     return postf(G)
-
 
 def m5(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -398,9 +317,397 @@ def m5(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     for i in range(xm):
         I = np.tile(X[i], (ym, 1))
         Ip = np.tile(Xp[i], (ym, 1))
-        E = I == Y
-        a = 2.0 * np.sum(prevf(Ip * E), axis=1)
-        N = I != Y
-        b = np.sum(prevf(Ip * N) + prevf(Yp * N), axis=1)
-        G[i, :] = a / np.sqrt(b * a)
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        G[i, :] = a / (a + 2.0 * (b + c))
+    return postf(G)
+
+def m6(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        apd = a + d
+        G[i, :] = apd / (apd + 2.0 * (b + c))
+    return postf(G)
+
+def m7(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        G[i, :] = a / (a + (b + c) / 2.0)
+    return postf(G)
+
+def m8(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        apd = a + d
+        G[i, :] = apd / (apd + (b + c) / 2.0)
+    return postf(G)
+
+def m9(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        bpc = b + c
+        apd = a + d
+        G[i, :] = (apd - bpc) / (apd + bpc)
+    return postf(G)
+
+def mA(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_5` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        G[i, :] = (a / (a + b) + a / (a + c)) / 2.0
+    return postf(G)
+
+def mB(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        G[i, :] = (a / (a + b) + a / (a + c) + d / (d + b) + d / (d + c)) / 4.0
+    return postf(G)
+
+def mC(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_5` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        G[i, :] = a / np.sqrt((a + b) * (a + c))
+    return postf(G)
+
+def mD(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        # nz = np.amax(NE, axis=1)
+        # eo = np.amin(EQ, axis=1)
+        num = (a * d) # * nz + eo
+        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c)) # * nz + eo
+        G[i, :] = num / den
+    return postf(G)
+
+def mE(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
+    """Computes a matrix with the values of applying the kernel
+    :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
+
+    Args:
+        X: Numpy matrix.
+        Y: Numpy matrix.
+        Xp: Numpy matrix with the probabilities of each category in *X*.
+        Yp: Numpy matrix with the probabilities of each category in *Y*.
+        alpha (float): Argument for the inverting function *h*.
+        prev (string): Function to transform the data before composing.
+            Values: ``'ident'``, ``'f1'`` or a function.
+        post (string): Function to transform the data after composing.
+            Values: ``'ident'``, ``'f1'``,  ``'f2'`` or a function.
+        kwargs (dict): Arguments required by *prev* or *post*.
+
+    Return:
+        Numpy matrix of size :math:`m_X \\times m_Y`.
+
+    Since the code is vectorised any function passed in *prev* or *post*
+    must work on numpy arrays.
+    """
+    h = lambda x: (1.0 - x ** alpha) ** (1.0 / alpha)
+    prevf = get_vector_function(prev, kwargs)
+    postf = get_vector_function(post, kwargs)
+    xm, xn = X.shape
+    ym, yn = Y.shape
+    Xp = h(Xp)
+    Yp = h(Yp)
+    G = np.zeros((xm, ym))
+    for i in range(xm):
+        I = np.tile(X[i], (ym, 1))
+        Ip = np.tile(Xp[i], (ym, 1))
+        EQ = I == Y
+        NE = I != Y
+        a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
+        b = np.sum(prevf(Ip * NE), axis=1)
+        c = np.sum(prevf(Yp * NE), axis=1)
+        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        # nz = np.amax(NE, axis=1)
+        # eo = np.amin(EQ, axis=1)
+        num = (a * d - b * c) # * nz + eo
+        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c)) # * nz + eo
+        G[i, :] =  num / den
     return postf(G)

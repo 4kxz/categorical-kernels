@@ -61,7 +61,7 @@ class K0(BaseHelper):
             ('ident', 'f1'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 3),
+        'gamma': 2.0 ** np.arange(-3, 2),
         }
 
 
@@ -71,14 +71,14 @@ class K1(BaseHelper):
     searcher = ks.K1Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
-        'alpha': 1.5 ** np.arange(-4, 3),
+        'alpha': 1.5 ** np.arange(-3, 3),
         'functions': [
             ('ident', 'ident'),
             ('ident', 'f1'),
             ('ident', 'f2'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 3),
+        'gamma': 2.0 ** np.arange(-3, 2),
         }
 
 
@@ -98,36 +98,64 @@ class K2(BaseHelper):
         }
 
 
-class M1(BaseHelper):
+class M3(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    searcher = ks.M1Search
+    searcher = ks.M3Search
     default_params = {
         'C': 10.0 ** np.arange(-1, 3),
-        'alpha': 1.5 ** np.arange(-4, 3),
+        'alpha': 1.5 ** np.arange(-3, 3),
         'functions': [
             ('ident', 'ident'),
             ('ident', 'f1'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 3),
+        'gamma': 2.0 ** np.arange(-3, 2),
         }
 
 
-class M2(M1):
-    searcher = ks.M2Search
-
-
-class M3(M1):
-    searcher = ks.M3Search
-
-
-class M4(M1):
+class M4(M3):
     searcher = ks.M4Search
 
 
-class M5(M1):
+class M5(M3):
     searcher = ks.M5Search
+
+
+class M6(M3):
+    searcher = ks.M6Search
+
+
+class M7(M3):
+    searcher = ks.M7Search
+
+
+class M8(M3):
+    searcher = ks.M8Search
+
+
+class M9(M3):
+    searcher = ks.M9Search
+
+
+class MA(M3):
+    searcher = ks.MASearch
+
+
+class MB(M3):
+    searcher = ks.MBSearch
+
+
+class MC(M3):
+    searcher = ks.MCSearch
+
+
+class MD(M3):
+    searcher = ks.MDSearch
+
+
+class ME(M3):
+    searcher = ks.MESearch
 
 
 class RBF(BaseHelper):
@@ -140,4 +168,4 @@ class RBF(BaseHelper):
         }
 
 
-DEFAULT_MODELS = (RBF, K0, K1, K2, ELK, M1, M2, M3, M4)
+DEFAULT_MODELS = (RBF, K0, K1, K2, ELK, M3, M4, M5, M6, M7, M8, M9, MA, MB, MC, MD, ME)

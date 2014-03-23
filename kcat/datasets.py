@@ -2,11 +2,7 @@ import csv
 import io
 import os
 import sys
-# Workaround for domino
-try:
-    from urllib.request import urlopen
-except:
-    pass
+from urllib.request import urlopen
 
 import numpy as np
 import pandas as pd
@@ -15,12 +11,15 @@ from sklearn import feature_extraction as fe
 
 from .utils import dummy_variable
 
+try:
+    DATA_DIR = os.environ['KCAT_DATA']
+except KeyError:
+    error_msg = "Point the KCAT_DATA environment variable to the data folder"
+    raise Exception(error_msg)
 
-DATA_DIR = 'data'
+def PATH(*x):
+    return os.path.abspath(os.path.join(DATA_DIR, *x))
 
-def data_path(filename):
-    module_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(module_dir, DATA_DIR, filename)
 
 def dummy(values):
     return fe.DictVectorizer().fit_transform(values).toarray()
@@ -164,18 +163,16 @@ class Promoter(Dataset):
     """
 
     def generate(self):
-        with urlopen(
-            'http://archive.ics.uci.edu/ml/machine-learning-databases/'
-            'molecular-biology/promoter-gene-sequences/promoters.data'
-        ) as data:
-            categories = {'a': 0, 'c': 1, 'g': 2, 't': 3}
-            X, y = [], []
-            for line in data:
-                cat, _, seq = line.decode('ascii').split(',')
-                X.append([categories[i] for i in seq.strip()])
-                y.append(cat == '+')
-            X, y = np.array(X), np.array(y)
-            return X, dummy_variable(X), y
+        path = PATH('PROMOTER', 'promoters.data')
+        names = cls, name, *attr = [
+            'class',
+            'name',
+        ] + ['attr{}'.format(i) for i in range(57)]  # The actual sequence
+        df = pd.read_csv(filepath_or_buffer=path, names=names)
+        X = df[attr].as_matrix().astype(str)
+        Z = dummy(df[attr].T.to_dict().values())
+        y = df[cls].values.astype(str)
+        return X, Z, y
 
 
 class Splice(Dataset):
@@ -394,7 +391,7 @@ class WebKB(Dataset):
     def generate(self):
         X, y, ref, index = [], [], [], {}
         with urlopen(
-            'http://localhost:8000/kcat/data/webkb-stemmed.txt'
+            'http://localhost:8000/webkb/stemmed.txt'
         ) as data:
             for line in data:
                 seq = line.decode('ascii').replace('\n', '').split(' ')
@@ -420,3 +417,15 @@ class WebKB(Dataset):
                                3 if x < 0.1 else 4
         categorize = np.vectorize(categorize)
         return categorize(X), X, y
+
+
+class TIS2007:
+    """Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
+    """
+
+    def generate(self):
+        raise NotImplementedError()

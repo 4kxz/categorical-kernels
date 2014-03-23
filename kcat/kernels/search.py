@@ -211,28 +211,6 @@ class K2Search(BaseSearch):
         return self.best_estimator_.predict(gram)
 
 
-class M1Search(K1Search):
-    """Finds the best parameters for :meth:`kcat.kernels.functions.m1`.
-
-    Args:
-        alpha: A list of floats.
-        functions: A list with tuples of the form ('prev', 'post').
-        gamma: A list of float values.
-    """
-    kernel_function = kf.m1
-
-
-class M2Search(K1Search):
-    """Finds the best parameters for :meth:`kcat.kernels.functions.m2`.
-
-    Args:
-        alpha: A list of floats.
-        functions: A list with tuples of the form ('prev', 'post').
-        gamma: A list of float values.
-    """
-    kernel_function = kf.m2
-
-
 class M3Search(K1Search):
     """Finds the best parameters for :meth:`kcat.kernels.functions.m3`.
 
@@ -245,25 +223,47 @@ class M3Search(K1Search):
 
 
 class M4Search(K1Search):
-    """Finds the best parameters for :meth:`kcat.kernels.functions.m4`.
-
-    Args:
-        alpha: A list of floats.
-        functions: A list with tuples of the form ('prev', 'post').
-        gamma: A list of float values.
-    """
     kernel_function = kf.m4
 
 
 class M5Search(K1Search):
-    """Finds the best parameters for :meth:`kcat.kernels.functions.m5`.
-
-    Args:
-        alpha: A list of floats.
-        functions: A list with tuples of the form ('prev', 'post').
-        gamma: A list of float values.
-    """
     kernel_function = kf.m5
+
+
+class M6Search(K1Search):
+    kernel_function = kf.m6
+
+
+class M7Search(K1Search):
+    kernel_function = kf.m7
+
+
+class M8Search(K1Search):
+    kernel_function = kf.m8
+
+
+class M9Search(K1Search):
+    kernel_function = kf.m9
+
+
+class MASearch(K1Search):
+    kernel_function = kf.mA
+
+
+class MBSearch(K1Search):
+    kernel_function = kf.mB
+
+
+class MCSearch(K1Search):
+    kernel_function = kf.mC
+
+
+class MDSearch(K1Search):
+    kernel_function = kf.mD
+
+
+class MESearch(K1Search):
+    kernel_function = kf.mE
 
 
 class RBFSearch(BaseSearch):
