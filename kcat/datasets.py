@@ -12,9 +12,9 @@ from sklearn import feature_extraction as fe
 from .utils import dummy_variable
 
 try:
-    DATA_DIR = os.environ['KCAT_DATA']
+    DATA_DIR = os.path.join(os.environ['KCAT_HOME'], 'data')
 except KeyError:
-    error_msg = "Point the KCAT_DATA environment variable to the data folder"
+    error_msg = "Point the KCAT_HOME environment variable to the data folder"
     raise Exception(error_msg)
 
 def PATH(*x):
@@ -429,3 +429,27 @@ class TIS2007:
 
     def generate(self):
         raise NotImplementedError()
+
+
+class Birds(Dataset):
+    """Return:
+        - A tuple containing:
+            - A matrix with the categorical dataset.
+            - A matrix with the dataset in dummy variable form.
+            - An array with the class of the examples.
+    """
+
+    def generate(self):
+        path = PATH('BIRDS', 'birds.txt')
+        names = cls, *attr = [
+            'gender',
+            'eyebrow',
+            'collar',
+            'sub-caudal',
+            'border',
+            ]
+        df = pd.read_csv(filepath_or_buffer=path, names=names)
+        X = df[attr].as_matrix().astype(str)
+        Z = dummy(df[attr].T.to_dict().values())
+        y = df[cls].values.astype(str)
+        return X, Z, y

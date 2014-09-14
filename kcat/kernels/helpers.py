@@ -168,4 +168,17 @@ class RBF(BaseHelper):
         }
 
 
+class Chi1(BaseHelper):
+    data = 'categorical'
+    svc = 'precomputed'
+    searcher = ks.Chi1Search
+    default_params = {
+        'C': 10.0 ** np.arange(-1, 3),
+        }
+
+
+class Chi2(Chi1):
+    searcher = ks.Chi2Search
+
+
 DEFAULT_MODELS = (RBF, K0, K1, K2, ELK, M3, M4, M5, M6, M7, M8, M9, MA, MB, MC, MD, ME)

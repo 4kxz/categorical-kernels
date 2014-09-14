@@ -711,3 +711,57 @@ def mE(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c)) # * nz + eo
         G[i, :] =  num / den
     return postf(G)
+
+
+from collections import defaultdict
+def chi1(X, Y, **kwargs):
+    Xm, Xn = X.shape
+    Ym, Yn = Y.shape
+    G = np.zeros((Xm, Ym))
+    for i, Xi in enumerate(X):
+        for j, Yj in enumerate(Y):
+            counter = defaultdict(int)
+            for k in range(Xn):
+                counter[(Xi[k], Yj[k])] += 1
+            for k in range(Xn):
+                ABCD = np.zeros((2, 2))
+                for pair, count in counter.items():
+                    r = 0 if Xi[k] == pair[0] else 1
+                    s = 0 if Yj[k] == pair[1] else 1
+                    ABCD[r, s] += count
+                a = ABCD[0, 0]
+                b = ABCD[0, 1]
+                c = ABCD[1, 0]
+                d = ABCD[1, 1]
+                num = Xn * (a*d - c*b) ** 2
+                den = (a+c) * (b+d) * (a+b) * (c+d)
+                G[i, j] += num / den
+    return G
+
+
+from collections import defaultdict
+def chi2(X, Y, **kwargs):
+    Xm, Xn = X.shape
+    Ym, Yn = Y.shape
+    G = np.zeros((Xm, Ym))
+    counter = defaultdict(int)
+    for i, Yi in enumerate(Y):
+        for j, Yj in enumerate(Y):
+            for k in range(Yn):
+                counter[(Yi[k], Yj[k])] += 1
+    for i, Xi in enumerate(X):
+        for j, Yj in enumerate(Y):
+            for k in range(Xn):
+                ABCD = np.zeros((2, 2))
+                for pair, count in counter.items():
+                    r = 0 if Xi[k] == pair[0] else 1
+                    s = 0 if Yj[k] == pair[1] else 1
+                    ABCD[r, s] += count
+                a = ABCD[0, 0]
+                b = ABCD[0, 1]
+                c = ABCD[1, 0]
+                d = ABCD[1, 1]
+                num = Xn * (a*d - c*b) ** 2
+                den = (a+c) * (b+d) * (a+b) * (c+d)
+                G[i, j] += num / den
+    return G

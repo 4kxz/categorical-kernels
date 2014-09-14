@@ -33,6 +33,7 @@ class BaseSearch:
             'estimator': estimator,
             'cv': cv,
             'param_grid': kwargs,
+            'n_jobs': 4,
             }
         self.best_score_ = 0
         self.best_params_ = {}
@@ -268,3 +269,11 @@ class MESearch(K1Search):
 
 class RBFSearch(BaseSearch):
     pass
+
+
+class Chi1Search(BaseSearch):
+    kernel_function = kf.chi1
+
+
+class Chi2Search(BaseSearch):
+    kernel_function = kf.chi2
