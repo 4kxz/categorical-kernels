@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 
+from kcat.kernels import helpers as kh
 import runners
 
 
@@ -23,7 +24,7 @@ if __name__ == '__main__':
         '-i', '--iterations',
         default=1,
         type=int,
-        help='number of repetitions',
+        help='number of repetitions, default is 1',
         )
     parser.add_argument(
         '-s', '--random-state',
@@ -35,19 +36,25 @@ if __name__ == '__main__':
         '-r', '--train-size',
         default=100,
         type=int,
-        help="number of elements in the train set",
+        help="number of elements in the train set, default is 100",
         )
     parser.add_argument(
         '-e', '--test-size',
         default=200,
         type=int,
-        help="number of elements in the test set",
+        help="number of elements in the test set, default is 200",
         )
     parser.add_argument(
         '-f', '--folds',
         default=5,
         type=int,
-        help="number of folds to use in cross-validation",
+        help="number of folds to use in cross-validation, default is 5",
+        )
+    parser.add_argument(
+        '-k', '--kernels',
+        default='RBF,K0,K1,K2',
+        type=str,
+        help="kernels to evaluate",
         )
     subparsers = parser.add_subparsers(dest='dataset')
     # Synthetic dataset arguments

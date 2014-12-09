@@ -46,7 +46,7 @@ class ELK(BaseHelper):
     svc = 'precomputed'
     searcher = ks.ELKSearch
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         }
 
 
@@ -55,13 +55,13 @@ class K0(BaseHelper):
     svc = 'precomputed'
     searcher = ks.K0Search
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         'functions': [
             ('ident', 'ident'),
             ('ident', 'f1'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 2),
+        'gamma': 2.0 ** np.arange(-3, 3),
         }
 
 
@@ -70,7 +70,7 @@ class K1(BaseHelper):
     svc = 'precomputed'
     searcher = ks.K1Search
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         'alpha': 1.5 ** np.arange(-3, 3),
         'functions': [
             ('ident', 'ident'),
@@ -78,7 +78,7 @@ class K1(BaseHelper):
             ('ident', 'f2'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 2),
+        'gamma': 2.0 ** np.arange(-3, 3),
         }
 
 
@@ -87,14 +87,14 @@ class K2(BaseHelper):
     svc = 'precomputed'
     searcher = ks.K2Search
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         'functions': [
             ('ident', 'ident'),
             ('ident', 'f1'),
             ('ident', 'f2'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 2),
+        'gamma': 2.0 ** np.arange(-3, 3),
         }
 
 
@@ -103,14 +103,14 @@ class M3(BaseHelper):
     svc = 'precomputed'
     searcher = ks.M3Search
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         'alpha': 1.5 ** np.arange(-3, 3),
         'functions': [
             ('ident', 'ident'),
             ('ident', 'f1'),
             ('f1', 'ident'),
             ],
-        'gamma': 2.0 ** np.arange(-3, 2),
+        'gamma': 2.0 ** np.arange(-3, 3),
         }
 
 
@@ -163,22 +163,19 @@ class RBF(BaseHelper):
     svc = 'rbf'
     searcher = ks.RBFSearch
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         'gamma': 2.0 ** np.arange(-12, 1),
         }
 
 
-class Chi1(BaseHelper):
+class CHI1(BaseHelper):
     data = 'categorical'
     svc = 'precomputed'
-    searcher = ks.Chi1Search
+    searcher = ks.CHI1Search
     default_params = {
-        'C': 10.0 ** np.arange(-1, 3),
+        'C': 10.0 ** np.arange(-1, 4),
         }
 
 
-class Chi2(Chi1):
-    searcher = ks.Chi2Search
-
-
-DEFAULT_MODELS = (RBF, K0, K1, K2, ELK, M3, M4, M5, M6, M7, M8, M9, MA, MB, MC, MD, ME)
+class CHI2(CHI1):
+    searcher = ks.CHI2Search

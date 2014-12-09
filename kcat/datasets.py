@@ -17,6 +17,7 @@ except KeyError:
     error_msg = "Point the KCAT_HOME environment variable to the data folder"
     raise Exception(error_msg)
 
+
 def PATH(*x):
     return os.path.abspath(os.path.join(DATA_DIR, *x))
 
@@ -192,7 +193,10 @@ class Splice(Dataset):
             'http://archive.ics.uci.edu/ml/machine-learning-databases/'
             'molecular-biology/splice-junction-gene-sequences/splice.data'
         ) as data:
-            categories = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'D': 4, 'N': 5, 'S': 6, 'R': 7}
+            categories = {
+                'A': 0, 'C': 1, 'G': 2, 'T': 3,
+                'D': 4, 'N': 5, 'S': 6, 'R': 7,
+            }
             classes = {'EI': 0, 'IE': 1, 'N': 2}
             X, y = [], []
             for line in data:
@@ -285,7 +289,10 @@ class CarEvaluation(Dataset):
     """
 
     def generate(self):
-        path = 'https://archive.ics.uci.edu/ml/machine-learning-databases/car/car.data'
+        path = (
+            'https://archive.ics.uci.edu'
+            '/ml/machine-learning-databases/car/car.data'
+        )
         names = *attr, cls = [
             'buying',
             'maint',
@@ -316,7 +323,10 @@ class CongressionalVoting(Dataset):
     """
 
     def generate(self):
-        path = 'http://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data'
+        path = (
+            'http://archive.ics.uci.edu'
+            '/ml/machine-learning-databases/voting-records/house-votes-84.data'
+        )
         names = cls, *attr = [
             'class',
             'handicapped-infants',
@@ -357,7 +367,10 @@ class TicTacToe(Dataset):
     """
 
     def generate(self):
-        path = 'http://archive.ics.uci.edu/ml/machine-learning-databases/tic-tac-toe/tic-tac-toe.data'
+        path = (
+            'http://archive.ics.uci.edu'
+            '/ml/machine-learning-databases/tic-tac-toe/tic-tac-toe.data'
+        )
         names = *attr, cls = [
             'top-left-square',
             'top-middle-square',
@@ -411,10 +424,11 @@ class WebKB(Dataset):
         # Transform frequency to inverse by row
         C /= C.sum(axis=1, keepdims=True)
         X, y = np.array(C), np.array(y)
-        categorize = lambda x: 0 if x < 0.0001 else \
-                               1 if x < 0.001 else \
-                               2 if x < 0.01 else \
-                               3 if x < 0.1 else 4
+        categorize = lambda x: \
+            0 if x < 0.0001 else \
+            1 if x < 0.001 else \
+            2 if x < 0.01 else \
+            3 if x < 0.1 else 4
         categorize = np.vectorize(categorize)
         return categorize(X), X, y
 

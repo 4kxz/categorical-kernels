@@ -8,8 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 try:
-    from mpltools import style
-    style.use('ggplot')
+    plt.style.use('ggplot')
 except:
     pass
 
@@ -85,10 +84,18 @@ ya, yb = plt.ylim()
 plt.ylim(0, yb)
 plt.savefig('{}-train-test.png'.format(args.output))
 
-# Print count for each group.
+# Plot test error.
 fig = plt.figure()
-df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
-plt.savefig('{}-count.png'.format(args.output))
+groups = [args.group_by, 'test_error']
+df.loc[:, groups].boxplot(by=args.group_by)
+ya, yb = plt.ylim()
+plt.ylim(0, yb)
+plt.savefig('{}-test.png'.format(args.output))
+
+# Print count for each group.
+# fig = plt.figure()
+# df.loc[:, [args.group_by]].groupby(args.group_by).count().plot(kind='bar')
+# plt.savefig('{}-count.png'.format(args.output))
 
 if args.synthetic:
     df = df[df.dataset == 'Synthetic']

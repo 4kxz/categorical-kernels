@@ -6,6 +6,8 @@ The methods are all prepared to work on numpy arrays and take advantage
 of vectorial operations to speed up computations.
 """
 
+from collections import defaultdict
+
 import numpy as np
 
 from ..utils import get_pgen, apply_pgen
@@ -36,6 +38,7 @@ def get_function(name, params=None):
         return f2
     else:
         raise ValueError("Invalid function {}".format(name))
+
 
 def get_vector_function(name, params=None):
     params = {} if params is None else params
@@ -74,6 +77,7 @@ def elk(X, Y):
         G[i, :] = np.sum(Xi, axis=1)
     return G
 
+
 def k0(X, Y, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`k_0` between each pair of elements in :math:`X` and :math:`Y`.
@@ -104,6 +108,7 @@ def k0(X, Y, prev='ident', post='ident', **kwargs):
         Xi = prevf(Xi == Y)
         G[i, :] = np.mean(Xi, axis=1)
     return postf(G)
+
 
 def k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -155,6 +160,7 @@ def k1(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
+
 def k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`k_2` between each pair of elements in :math:`X` and :math:`Y`.
@@ -203,6 +209,7 @@ def k2(X, Y, Xp, Yp, prev='ident', post='ident', **kwargs):
         GY = np.tile(GY, (xm, 1))
         return np.exp(gamma * (2.0 * G - GX - GY))
 
+
 def m3(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_1` between each pair of elements in :math:`X` and :math:`Y`.
@@ -240,6 +247,7 @@ def m3(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         Xq = prevf(Xq) + prevf(Yp)
         G[i, :] = 2.0 * np.sum(Xi, axis=1) / np.sum(Xq, axis=1)
     return postf(G)
+
 
 def m4(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -279,10 +287,13 @@ def m4(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         apd = a + d
         G[i, :] = apd / (apd + b + c)
     return postf(G)
+
 
 def m5(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -325,6 +336,7 @@ def m5(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         G[i, :] = a / (a + 2.0 * (b + c))
     return postf(G)
 
+
 def m6(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
@@ -363,10 +375,13 @@ def m6(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         apd = a + d
         G[i, :] = apd / (apd + 2.0 * (b + c))
     return postf(G)
+
 
 def m7(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -409,6 +424,7 @@ def m7(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         G[i, :] = a / (a + (b + c) / 2.0)
     return postf(G)
 
+
 def m8(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
@@ -447,10 +463,13 @@ def m8(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         apd = a + d
         G[i, :] = apd / (apd + (b + c) / 2.0)
     return postf(G)
+
 
 def m9(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -490,11 +509,14 @@ def m9(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         bpc = b + c
         apd = a + d
         G[i, :] = (apd - bpc) / (apd + bpc)
     return postf(G)
+
 
 def mA(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -537,6 +559,7 @@ def mA(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         G[i, :] = (a / (a + b) + a / (a + c)) / 2.0
     return postf(G)
 
+
 def mB(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
@@ -575,9 +598,12 @@ def mB(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         G[i, :] = (a / (a + b) + a / (a + c) + d / (d + b) + d / (d + c)) / 4.0
     return postf(G)
+
 
 def mC(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -620,6 +646,7 @@ def mC(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         G[i, :] = a / np.sqrt((a + b) * (a + c))
     return postf(G)
 
+
 def mD(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
     :math:`m_4` between each pair of elements in :math:`X` and :math:`Y`.
@@ -658,13 +685,16 @@ def mD(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         # nz = np.amax(NE, axis=1)
         # eo = np.amin(EQ, axis=1)
-        num = (a * d) # * nz + eo
-        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c)) # * nz + eo
+        num = (a * d)  # * nz + eo
+        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c))  # * nz + eo
         G[i, :] = num / den
     return postf(G)
+
 
 def mE(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
     """Computes a matrix with the values of applying the kernel
@@ -704,16 +734,17 @@ def mE(X, Y, Xp, Yp, alpha=1.0, prev='ident', post='ident', **kwargs):
         a = 2.0 * np.sum(prevf(Ip * EQ), axis=1)
         b = np.sum(prevf(Ip * NE), axis=1)
         c = np.sum(prevf(Yp * NE), axis=1)
-        d = 2.0 * np.sum(prevf(1.0 - Ip * EQ), axis=1)
+        dx = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        dy = np.sum(prevf(1.0 - Ip * NE), axis=1)
+        d = dx + dy
         # nz = np.amax(NE, axis=1)
         # eo = np.amin(EQ, axis=1)
-        num = (a * d - b * c) # * nz + eo
-        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c)) # * nz + eo
-        G[i, :] =  num / den
+        num = (a * d - b * c)  # * nz + eo
+        den = np.sqrt((a + b) * (a + c) * (d + b) * (d + c))  # * nz + eo
+        G[i, :] = num / den
     return postf(G)
 
 
-from collections import defaultdict
 def chi1(X, Y, **kwargs):
     Xm, Xn = X.shape
     Ym, Yn = Y.shape
@@ -739,7 +770,6 @@ def chi1(X, Y, **kwargs):
     return G
 
 
-from collections import defaultdict
 def chi2(X, Y, **kwargs):
     Xm, Xn = X.shape
     Ym, Yn = Y.shape

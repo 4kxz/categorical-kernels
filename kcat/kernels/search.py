@@ -169,7 +169,7 @@ class K1Search(BaseSearch):
                         self.best_estimator_ = search.best_estimator_
 
     def predict(self, X):
-        Xp  = self.pgen(X)
+        Xp = self.pgen(X)
         gram = self.kernel(X, self.X, Xp, self.Xp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
@@ -207,7 +207,7 @@ class K2Search(BaseSearch):
                     self.best_estimator_ = search.best_estimator_
 
     def predict(self, X):
-        Xp  = self.pgen(X)
+        Xp = self.pgen(X)
         gram = self.kernel(X, self.X, Xp, self.Xp, **self.best_kparams_)
         return self.best_estimator_.predict(gram)
 
@@ -271,9 +271,9 @@ class RBFSearch(BaseSearch):
     pass
 
 
-class Chi1Search(BaseSearch):
+class CHI1Search(BaseSearch):
     kernel_function = kf.chi1
 
 
-class Chi2Search(BaseSearch):
+class CHI2Search(BaseSearch):
     kernel_function = kf.chi2

@@ -14,7 +14,7 @@ Here's a full view of the library tree:
 
 Building this documentation requires::
 
-    Sphix >= 1.2
+    Sphinx >= 1.2
     sphinxcontrib-napoleon >= 0.2.4
 
 

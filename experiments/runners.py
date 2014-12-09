@@ -33,7 +33,7 @@ class BaseRunner:
         for i in range(iterations):
             self._single_run(**kwargs)
 
-    def _single_run(self, **kwargs):
+    def _single_run(self, kernels, **kwargs):
         """Generate a dataset an train/test all the kernels on it."""
         if self.verbose:
             print("#{} {}".format(self.state, time.asctime()))
@@ -49,9 +49,9 @@ class BaseRunner:
         cvf = cv.StratifiedKFold(y_train, kwargs['folds'])
         # Test preformance with every kernel:
         evaluation = {}
-        for kernel_model in kh.DEFAULT_MODELS:
+        for model_name in kernels.split(','):
             # Instantiate the model:
-            model = kernel_model()
+            model = getattr(kh, model_name)()
             # Train the model:
             if self.verbose:
                 print('Training {}...'.format(model.name))
@@ -84,7 +84,7 @@ class SyntheticRunner(BaseRunner):
     def run(self, p_range, **kwargs):
         if p_range:
             for p in np.arange(0.1, 1.0, 0.1):
-                kwargs['p'] = p;
+                kwargs['p'] = p
                 super()._batch_run(**kwargs)
         else:
             super()._batch_run(**kwargs)
